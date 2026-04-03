@@ -231,12 +231,10 @@
     const isProcessing = entry.status === 'Processing';
 
     return `
-      <div class="entry-card" id="card-${entry.id}">
-        <div class="entry-card-header">
-          <div class="entry-card" id="card-${entry.id}">
-  <input type="checkbox" class="entry-checkbox" value="${entry.id}"></span></div>
-          ${statusBadge}
-        </div>
+      <div class="entry-card-header">
+  <input type="checkbox" class="entry-checkbox" value="${entry.id}">
+  ${statusBadge}
+</div>
         <div class="entry-meta">
           <span>👤 Reg: <strong>${entry.registrationNumber}</strong></span>
           <span>📧 Email: <strong>${entry.userEmail || '—'}</strong></span>
@@ -325,19 +323,21 @@
   }
 
 };
-      // ✅ Select All checkbox
+// ================== ADD BELOW THIS LINE ==================
+
+// Select All
 window.toggleSelectAll = function (checkbox) {
   document.querySelectorAll('.entry-checkbox')
     .forEach(cb => cb.checked = checkbox.checked);
 };
 
-// ✅ Get selected IDs
+// Get selected IDs
 function getSelectedIds() {
   return Array.from(document.querySelectorAll('.entry-checkbox:checked'))
     .map(cb => cb.value);
 }
 
-// ✅ Bulk status update
+// Bulk update
 window.bulkUpdate = async function (status) {
   const ids = getSelectedIds();
 
