@@ -231,10 +231,12 @@
     const isProcessing = entry.status === 'Processing';
 
     return `
-      <div class="entry-card-header">
-  <input type="checkbox" class="entry-checkbox" value="${entry.id}">
-  ${statusBadge}
-</div>
+      <div class="entry-card" id="card-${entry.id}">
+    
+    <div class="entry-card-header">
+      <input type="checkbox" class="entry-checkbox" value="${entry.id}">
+      ${statusBadge}
+    </div>
         <div class="entry-meta">
           <span>👤 Reg: <strong>${entry.registrationNumber}</strong></span>
           <span>📧 Email: <strong>${entry.userEmail || '—'}</strong></span>
