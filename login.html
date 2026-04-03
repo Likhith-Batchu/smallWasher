@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — DhobiDesk</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav class="navbar">
+  <a class="navbar-brand" href="index.html">
+    <div class="logo-icon">🧺</div>
+    <span>DhobiDesk</span>
+  </a>
+  <ul class="navbar-links">
+    <li><a href="schedule.html">Schedule</a></li>
+    <li><a href="signup.html" class="btn-nav">Sign Up</a></li>
+  </ul>
+</nav>
+
+<!-- ── Login Form ── -->
+<div class="main-wrapper">
+  <div class="form-container">
+    <div class="form-card fade-in-up">
+
+      <div class="form-logo">
+        <div class="logo-circle">🔑</div>
+        <h2>Welcome Back</h2>
+        <p class="form-subtitle">Login to your DhobiDesk account</p>
+      </div>
+
+      <!-- Alert area -->
+      <div id="alertBox" style="display:none;"></div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="you@hostel.edu" autocomplete="email" />
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Your password" autocomplete="current-password" />
+      </div>
+
+      <button class="btn btn-primary form-submit" id="loginBtn" onclick="handleLogin()">
+        Login
+      </button>
+
+      <div class="form-footer">
+        Don't have an account? <a href="signup.html">Sign up here</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── Footer ── -->
+<footer class="footer">
+  <p>© 2024 <strong>DhobiDesk</strong> — Smart Laundry Coordination for Hostels</p>
+</footer>
+
+<script type="module">
+  import { login, auth, onAuthStateChanged, checkUserRole } from './firebase.js';
+
+  // If already logged in, redirect
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const role = await checkUserRole(user.uid);
+      window.location.href = role === 'worker' ? 'worker.html' : 'student.html';
+    }
+  });
+
+  // Allow pressing Enter to login
+  document.getElementById('password').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') window.handleLogin();
+  });
+
+  function showAlert(message, type = 'error') {
+    const box = document.getElementById('alertBox');
+    const icons = { error: '❌', success: '✅', warning: '⚠️', info: 'ℹ️' };
+    box.className = `alert alert-${type}`;
+    box.innerHTML = `${icons[type]} ${message}`;
+    box.style.display = 'flex';
+  }
+
+  window.handleLogin = async function () {
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const btn      = document.getElementById('loginBtn');
+
+    if (!email || !password) {
+      showAlert('Please enter your email and password.', 'error'); return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Logging in…';
+
+    try {
+      const user = await login(email, password);
+      const role = await checkUserRole(user.uid);
+      showAlert('Login successful! Redirecting…', 'success');
+      setTimeout(() => {
+        window.location.href = role === 'worker' ? 'worker.html' : 'student.html';
+      }, 1000);
+    } catch (err) {
+      let msg = 'Login failed. Please try again.';
+      if (err.code === 'auth/user-not-found')   msg = 'No account found with this email.';
+      if (err.code === 'auth/wrong-password')   msg = 'Incorrect password.';
+      if (err.code === 'auth/invalid-email')    msg = 'Invalid email address.';
+      if (err.code === 'auth/invalid-credential') msg = 'Invalid email or password.';
+      showAlert(msg, 'error');
+      btn.disabled = false;
+      btn.textContent = 'Login';
+    }
+  };
+</script>
+
+</body>
+</html>
