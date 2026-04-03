@@ -323,7 +323,9 @@
   } catch (err) {
     document.getElementById('assignMsg').innerText = "❌ Error: " + err.message;
   }
-    // ✅ Select All checkbox
+
+};
+      // ✅ Select All checkbox
 window.toggleSelectAll = function (checkbox) {
   document.querySelectorAll('.entry-checkbox')
     .forEach(cb => cb.checked = checkbox.checked);
@@ -349,7 +351,6 @@ window.bulkUpdate = async function (status) {
   }
 
   alert("Bulk update done ✅");
-};
 };
 </script>
 
