@@ -858,3 +858,561 @@ textarea {
   padding: 8px;
   margin-bottom: 10px;
 }
+/* ============================================================
+   Lost & Found Page Styles — Matching DhobiDesk Design System
+   ============================================================ */
+
+/* Layout Grid */
+.lostfound-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .lostfound-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+/* Lost Item Cards */
+.lost-item {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  transition: all var(--transition);
+}
+
+.lost-item:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.lost-item.resolved {
+  background: var(--green-lt);
+  border-color: #86efac;
+}
+
+/* Lost Item Header */
+.lost-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Lost Item Description */
+.lost-item-desc {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--gray-800);
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+/* Lost Item Meta Info */
+.lost-item-meta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--gray-600);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+/* Contact Info */
+.lost-item-contact {
+  background: var(--gray-100);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Status Badges */
+.badge-found {
+  background: var(--green-lt);
+  color: var(--green);
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-lost {
+  background: var(--orange-lt);
+  color: var(--orange);
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Action Buttons */
+.mark-found-btn {
+  background: transparent;
+  border: 1.5px solid var(--green);
+  color: var(--green);
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: var(--font-body);
+}
+
+.mark-found-btn:hover {
+  background: var(--green);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.delete-btn {
+  background: transparent;
+  border: 1.5px solid var(--gray-400);
+  color: var(--gray-600);
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: var(--font-body);
+}
+
+.delete-btn:hover {
+  background: var(--red);
+  border-color: var(--red);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* Empty State */
+.empty-lost {
+  text-align: center;
+  padding: 3rem 1.5rem;
+}
+
+.empty-lost .empty-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-lost h4 {
+  margin-bottom: 0.5rem;
+  color: var(--gray-600);
+  font-family: var(--font-head);
+}
+
+.empty-lost p {
+  color: var(--gray-400);
+  font-size: 0.85rem;
+}
+
+/* Filter Tabs */
+.filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.filter-tab {
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  padding: 6px 18px;
+  border-radius: 100px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  color: var(--gray-600);
+  font-family: var(--font-body);
+}
+
+.filter-tab.active {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: white;
+}
+
+.filter-tab:hover:not(.active) {
+  background: var(--gray-200);
+  transform: translateY(-1px);
+}
+
+/* Form Elements */
+.lostfound-form textarea,
+.lostfound-form input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  transition: all var(--transition);
+  background: var(--gray-100);
+}
+
+.lostfound-form textarea:focus,
+.lostfound-form input:focus {
+  outline: none;
+  border-color: var(--blue);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(34, 83, 168, 0.1);
+}
+
+.lostfound-form textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+.form-row {
+  margin-bottom: 1.25rem;
+}
+
+.form-row label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Character Counter */
+.char-count {
+  font-size: 0.7rem;
+  color: var(--gray-400);
+  text-align: right;
+  margin-top: 0.25rem;
+}
+
+/* Stats Mini Card */
+.stats-mini {
+  background: var(--navy);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-top: 1rem;
+}
+
+.stats-mini h4 {
+  color: white;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.stats-mini-grid {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.stats-mini-item {
+  text-align: center;
+}
+
+.stats-mini-number {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--amber);
+}
+
+.stats-mini-label {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 0.25rem;
+}
+
+/* Sidebar Stats Card (reused from existing design) */
+.sidebar-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.sidebar-card h4 {
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+/* Success Message Inside Lost Item */
+.lost-item-success-msg {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--green);
+  background: var(--green-lt);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+}
+
+/* Helper Message */
+.lost-item-helper {
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--gray-400);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+  .lost-item-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .lost-item-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .filter-tabs {
+    justify-content: center;
+  }
+  
+  .filter-tab {
+    padding: 4px 14px;
+    font-size: 0.75rem;
+  }
+  
+  .mark-found-btn,
+  .delete-btn {
+    padding: 4px 10px;
+    font-size: 0.7rem;
+  }
+}
+
+/* Animation for new items */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lost-item {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* VIT Logo Centering (already in your CSS, keeping for reference) */
+.vit-center-logo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.vit-center-logo img {
+  height: 54px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Bulk Actions (if needed for worker panel) */
+.bulk-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Alert Styles (already in your CSS, ensuring consistency) */
+.alert {
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alert-success {
+  background: var(--green-lt);
+  color: var(--green);
+  border: 1px solid #86efac;
+}
+
+.alert-error {
+  background: var(--red-lt);
+  color: var(--red);
+  border: 1px solid #fca5a5;
+}
+
+.alert-warning {
+  background: var(--orange-lt);
+  color: var(--orange);
+  border: 1px solid #fdba74;
+}
+
+.alert-info {
+  background: rgba(34, 83, 168, 0.07);
+  color: var(--blue);
+  border: 1px solid rgba(34, 83, 168, 0.2);
+}
+
+/* Info Box */
+.info-box {
+  background: rgba(34, 83, 168, 0.06);
+  border: 1px solid rgba(34, 83, 168, 0.2);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-size: 0.875rem;
+  color: var(--blue);
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+/* Loader Animation (already in your CSS) */
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  gap: 8px;
+}
+
+.loader-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--amber);
+  border-radius: 50%;
+  animation: bounce 0.6s alternate infinite;
+}
+
+.loader-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.loader-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes bounce {
+  to {
+    transform: translateY(-10px);
+    opacity: 0.5;
+  }
+}
+
+/* Card Styles (ensuring consistency) */
+.card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--white);
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+/* Page Header (already in your CSS) */
+.page-header {
+  background: var(--navy);
+  color: var(--white);
+  padding: 2.5rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::after {
+  content: '';
+  position: absolute;
+  right: -60px;
+  top: -60px;
+  width: 220px;
+  height: 220px;
+  background: rgba(245, 166, 35, 0.12);
+  border-radius: 50%;
+}
+
+.page-header .header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(245, 166, 35, 0.2);
+  color: var(--amber);
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.page-header h1 {
+  color: var(--white);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  margin-bottom: 0.5rem;
+}
+
+.page-header p {
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 0.3rem;
+  font-size: 0.95rem;
+}
+
+/* Main Wrapper */
+.main-wrapper {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+/* Footer */
+.footer {
+  background: var(--navy);
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 0.82rem;
+  margin-top: auto;
+}
+
+.footer strong {
+  color: var(--amber);
+}
