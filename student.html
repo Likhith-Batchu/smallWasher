@@ -340,12 +340,24 @@
   else {
     reply = "Try asking about status, shelf, time, or lost items 😊";
   }
+   else if (text.includes("status") || text.includes("progress") || text.includes("laundry")) {
+  reply = "Your laundry status is shown in your dashboard above 👆";
+}
+    else if (text.includes("where") || text.includes("location") || text.includes("shelf")) {
+  reply = "Once completed, your laundry will be placed on a shelf 📦. Check your dashboard.";
+}
+
+else if (text.includes("how long") || text.includes("time") || text.includes("duration")) {
+  reply = "Laundry usually takes around 24 hours ⏳.";
+}
 
   chat.innerHTML += `<p><strong>Bot:</strong> ${reply}</p>`;
 
   chat.scrollTop = chat.scrollHeight;
   input.value = "";
+    
 };
+  
 </script>
 
 </body>
