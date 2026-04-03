@@ -1,41 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Lost & Found</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lost & Found — DhobiDesk</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
+<!-- ── Navbar ── -->
+<nav class="navbar">
+  <a class="navbar-brand" href="index.html">
+    <div class="logo-icon">🧺</div>
+    <span>DhobiDesk</span>
+  </a>
+  <ul class="navbar-links">
+    <li><a href="schedule.html">Schedule</a></li>
+    <li><a href="student.html">Dashboard</a></li>
+    <li><a href="lostfound.html">Lost & Found</a></li>
+  </ul>
+</nav>
+
+<!-- ── Page Header ── -->
+<div class="page-header">
+  <div class="main-wrapper" style="padding-top:0;padding-bottom:0;">
+    <div class="header-badge">🔍 Lost & Found</div>
+    <h1>Community Board</h1>
+    <p>Post or find misplaced laundry items</p>
+  </div>
+</div>
+
+<!-- ── Main Content ── -->
 <div class="main-wrapper">
 
-  <h2>🔍 Lost & Found</h2>
+  <!-- Post Card -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header">
+      <h3>➕ Post an Item</h3>
+    </div>
 
-  <!-- Form -->
-  <div class="card">
-    <textarea id="descInput" placeholder="Describe the item (e.g. Black hoodie found near Block A)"></textarea>
-    <input type="text" id="phoneInput" placeholder="Your phone number">
+    <div class="card-body">
 
-    <button onclick="postItem()">Post</button>
+      <textarea id="descInput" placeholder="Describe the item (e.g. Blue hoodie found near Block B laundry room)" style="width:100%;margin-bottom:10px;"></textarea>
+
+      <input type="text" id="phoneInput" placeholder="Your phone number" />
+
+      <button class="btn btn-green" onclick="postItem()">Post</button>
+
+      <div id="msgBox" style="margin-top:10px;font-weight:600;"></div>
+
+    </div>
   </div>
 
-  <!-- Posts -->
-  <div id="posts"></div>
+  <!-- Items List -->
+  <div class="card">
+    <div class="card-header">
+      <h3>📋 All Posts</h3>
+    </div>
+
+    <div class="card-body">
+      <div id="posts"></div>
+    </div>
+  </div>
 
 </div>
 
+<!-- ── Footer ── -->
+<footer class="footer">
+  <p>© 2024 <strong>DhobiDesk</strong></p>
+</footer>
+
 <script type="module">
   import { db } from './firebase.js';
-  import { collection, addDoc, getDocs, query, orderBy } 
+  import { collection, addDoc, getDocs, query, orderBy }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  // Post item
+  function showMessage(text, type="success") {
+    const box = document.getElementById("msgBox");
+    box.textContent = text;
+    box.style.color = type === "error" ? "red" : "green";
+
+    setTimeout(() => box.textContent = "", 3000);
+  }
+
   window.postItem = async function () {
-    const desc = document.getElementById("descInput").value;
-    const phone = document.getElementById("phoneInput").value;
+    const desc = document.getElementById("descInput").value.trim();
+    const phone = document.getElementById("phoneInput").value.trim();
 
     if (!desc || !phone) {
-      alert("Fill all fields");
+      showMessage("Fill all fields", "error");
       return;
     }
 
@@ -48,10 +101,11 @@
     document.getElementById("descInput").value = "";
     document.getElementById("phoneInput").value = "";
 
+    showMessage("Posted successfully ✅");
+
     loadPosts();
   };
 
-  // Load posts
   async function loadPosts() {
     const container = document.getElementById("posts");
     container.innerHTML = "";
@@ -63,9 +117,11 @@
       const data = doc.data();
 
       container.innerHTML += `
-        <div class="card">
-          <p>${data.desc}</p>
-          <p><strong>📱 ${data.phone}</strong></p>
+        <div class="entry-card" style="margin-bottom:10px;">
+          <div class="entry-meta">
+            <p><strong>${data.desc}</strong></p>
+            <span>📱 ${data.phone}</span>
+          </div>
         </div>
       `;
     });
