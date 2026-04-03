@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lost & Found</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="main-wrapper">
+
+  <h2>🔍 Lost & Found</h2>
+
+  <!-- Form -->
+  <div class="card">
+    <textarea id="descInput" placeholder="Describe the item (e.g. Black hoodie found near Block A)"></textarea>
+    <input type="text" id="phoneInput" placeholder="Your phone number">
+
+    <button onclick="postItem()">Post</button>
+  </div>
+
+  <!-- Posts -->
+  <div id="posts"></div>
+
+</div>
+
+<script type="module">
+  import { db } from './firebase.js';
+  import { collection, addDoc, getDocs, query, orderBy } 
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // Post item
+  window.postItem = async function () {
+    const desc = document.getElementById("descInput").value;
+    const phone = document.getElementById("phoneInput").value;
+
+    if (!desc || !phone) {
+      alert("Fill all fields");
+      return;
+    }
+
+    await addDoc(collection(db, "lostItems"), {
+      desc,
+      phone,
+      time: new Date()
+    });
+
+    document.getElementById("descInput").value = "";
+    document.getElementById("phoneInput").value = "";
+
+    loadPosts();
+  };
+
+  // Load posts
+  async function loadPosts() {
+    const container = document.getElementById("posts");
+    container.innerHTML = "";
+
+    const q = query(collection(db, "lostItems"), orderBy("time", "desc"));
+    const snapshot = await getDocs(q);
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+
+      container.innerHTML += `
+        <div class="card">
+          <p>${data.desc}</p>
+          <p><strong>📱 ${data.phone}</strong></p>
+        </div>
+      `;
+    });
+  }
+
+  loadPosts();
+</script>
+
+</body>
+</html>
