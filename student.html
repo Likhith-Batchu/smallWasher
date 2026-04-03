@@ -113,7 +113,22 @@
     </main>
   </div>
 </div>
+<div class="card" style="margin-top:20px;">
+  <div class="card-header">
+    <h3>🤖 Laundry Assistant</h3>
+  </div>
 
+  <div class="card-body">
+
+    <div id="chatBox" style="max-height:250px; overflow:auto; margin-bottom:10px;"></div>
+
+    <div style="display:flex; gap:10px;">
+      <input type="text" id="userInput" placeholder="Ask something..." style="flex:1;">
+      <button class="btn btn-green" onclick="sendMessage()">Send</button>
+    </div>
+
+  </div>
+</div>
 <!-- ── Footer ── -->
 <footer class="footer">
   <p>© 2024 <strong>DhobiDesk</strong> — Smart Laundry Coordination for Hostels</p>
