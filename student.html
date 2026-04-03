@@ -309,6 +309,43 @@
       ? `<span style="color:var(--green);">✅ You can submit today!</span>`
       : `<span style="color:var(--orange);">⚠️ ${check.reason}</span>`;
   });
+  window.sendMessage = function () {
+  const input = document.getElementById("userInput");
+  const chat = document.getElementById("chatBox");
+
+  const userText = input.value.trim();
+  const text = userText.toLowerCase();
+
+  if (!userText) return;
+
+  chat.innerHTML += `<p><strong>You:</strong> ${userText}</p>`;
+
+  let reply = "I didn't understand 🤔";
+
+  if (text.includes("status")) {
+    reply = "Check your dashboard above 👆 to see current laundry status.";
+  }
+  else if (text.includes("shelf") || text.includes("where")) {
+    reply = "Your laundry will be placed on a shelf 📦 once completed.";
+  }
+  else if (text.includes("time")) {
+    reply = "Laundry usually takes around 24 hours ⏳.";
+  }
+  else if (text.includes("lost")) {
+    reply = "Check the Lost & Found section 🔍.";
+  }
+  else if (text.includes("hi") || text.includes("hello")) {
+    reply = "Hey! 👋 How can I help you?";
+  }
+  else {
+    reply = "Try asking about status, shelf, time, or lost items 😊";
+  }
+
+  chat.innerHTML += `<p><strong>Bot:</strong> ${reply}</p>`;
+
+  chat.scrollTop = chat.scrollHeight;
+  input.value = "";
+};
 </script>
 
 </body>
