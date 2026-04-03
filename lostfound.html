@@ -1,133 +1,776 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lost & Found — DhobiDesk</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Lost & Found specific styles that perfectly match the existing design system */
+    .lostfound-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    
+    @media (max-width: 768px) {
+      .lostfound-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+    }
+    
+    /* Reusing existing card styles, just adding lost item specific */
+    .lost-item {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      transition: all var(--transition);
+    }
+    
+    .lost-item:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+    
+    .lost-item.resolved {
+      background: var(--green-lt);
+      border-color: #86efac;
+    }
+    
+    .lost-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    
+    .lost-item-desc {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--gray-800);
+      margin-bottom: 0.75rem;
+      line-height: 1.5;
+    }
+    
+    .lost-item-meta {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+      color: var(--gray-600);
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .lost-item-contact {
+      background: var(--gray-100);
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .badge-found {
+      background: var(--green-lt);
+      color: var(--green);
+      padding: 4px 12px;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .badge-lost {
+      background: var(--orange-lt);
+      color: var(--orange);
+      padding: 4px 12px;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .mark-found-btn {
+      background: transparent;
+      border: 1.5px solid var(--green);
+      color: var(--green);
+      padding: 6px 14px;
+      border-radius: var(--radius);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: var(--font-body);
+    }
+    
+    .mark-found-btn:hover {
+      background: var(--green);
+      color: white;
+      transform: translateY(-1px);
+    }
+    
+    .delete-btn {
+      background: transparent;
+      border: 1.5px solid var(--gray-400);
+      color: var(--gray-600);
+      padding: 6px 14px;
+      border-radius: var(--radius);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: var(--font-body);
+    }
+    
+    .delete-btn:hover {
+      background: var(--red);
+      border-color: var(--red);
+      color: white;
+      transform: translateY(-1px);
+    }
+    
+    .empty-lost {
+      text-align: center;
+      padding: 3rem 1.5rem;
+    }
+    
+    .empty-lost .empty-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+    
+    .empty-lost h4 {
+      margin-bottom: 0.5rem;
+      color: var(--gray-600);
+    }
+    
+    .filter-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+    
+    .filter-tab {
+      background: var(--gray-100);
+      border: 1px solid var(--gray-200);
+      padding: 6px 18px;
+      border-radius: 100px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      color: var(--gray-600);
+      font-family: var(--font-body);
+    }
+    
+    .filter-tab.active {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: white;
+    }
+    
+    .filter-tab:hover:not(.active) {
+      background: var(--gray-200);
+      transform: translateY(-1px);
+    }
+    
+    textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      resize: vertical;
+      min-height: 110px;
+      transition: border-color var(--transition);
+      background: var(--gray-100);
+    }
+    
+    textarea:focus {
+      outline: none;
+      border-color: var(--blue);
+      background: var(--white);
+      box-shadow: 0 0 0 3px rgba(34,83,168,0.1);
+    }
+    
+    .form-row {
+      margin-bottom: 1.25rem;
+    }
+    
+    .form-row label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    
+    .char-count {
+      font-size: 0.7rem;
+      color: var(--gray-400);
+      text-align: right;
+      margin-top: 0.25rem;
+    }
+    
+    .stats-mini {
+      background: var(--navy);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-top: 1rem;
+    }
+    
+    .stats-mini h4 {
+      color: white;
+      margin-bottom: 0.75rem;
+      font-size: 0.9rem;
+    }
+    
+    .stats-mini-grid {
+      display: flex;
+      gap: 1.5rem;
+    }
+    
+    .stats-mini-item {
+      text-align: center;
+    }
+    
+    .stats-mini-number {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--amber);
+    }
+    
+    .stats-mini-label {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.7);
+      margin-top: 0.25rem;
+    }
+  </style>
 </head>
 <body>
 
-<!-- ── Navbar ── -->
+<!-- ── Navbar (exactly matching other pages) ── -->
 <nav class="navbar">
   <a class="navbar-brand" href="index.html">
     <div class="logo-icon">🧺</div>
     <span>DhobiDesk</span>
   </a>
-  <ul class="navbar-links">
+  <div class="vit-center-logo">
+    <img src="vit-logo.png" alt="VIT Chennai" onerror="this.style.display='none'">
+  </div>
+  <ul class="navbar-links" id="navLinks">
     <li><a href="schedule.html">Schedule</a></li>
-    <li><a href="student.html">Dashboard</a></li>
-    <li><a href="lostfound.html">Lost & Found</a></li>
+    <li><a href="login.html">Login</a></li>
+    <li><a href="signup.html" class="btn-nav">Sign Up</a></li>
   </ul>
 </nav>
 
-<!-- ── Page Header ── -->
+<!-- ── Page Header (matching student/worker pages) ── -->
 <div class="page-header">
   <div class="main-wrapper" style="padding-top:0;padding-bottom:0;">
-    <div class="header-badge">🔍 Lost & Found</div>
-    <h1>Community Board</h1>
-    <p>Post or find misplaced laundry items</p>
+    <div class="header-badge">🔍 Community Help</div>
+    <h1>Lost & Found</h1>
+    <p>Report lost items or help return found belongings</p>
   </div>
 </div>
 
 <!-- ── Main Content ── -->
 <div class="main-wrapper">
-
-  <!-- Post Card -->
-  <div class="card" style="margin-bottom:1.5rem;">
-    <div class="card-header">
-      <h3>➕ Post an Item</h3>
+  
+  <!-- Alert container -->
+  <div id="globalAlert" style="margin-bottom:1.5rem; display:none;"></div>
+  
+  <div class="lostfound-grid">
+    
+    <!-- LEFT: Submit Form Card -->
+    <div class="card">
+      <div class="card-header">
+        <h3>📝 Report Lost Item</h3>
+      </div>
+      <div class="card-body">
+        <div class="form-row">
+          <label for="descInput">Item Description *</label>
+          <textarea 
+            id="descInput" 
+            placeholder="Describe the item in detail (color, brand, size, distinctive features, where it was lost...)"
+            maxlength="300"
+          ></textarea>
+          <div class="char-count">
+            <span id="charCount">0</span>/300 characters
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <label for="phoneInput">Contact Number/Email *</label>
+          <input 
+            type="text" 
+            id="phoneInput" 
+            placeholder="How can the finder reach you?"
+            style="width:100%; padding:11px 14px; border:1.5px solid var(--gray-200); border-radius:var(--radius); background:var(--gray-100); font-family:var(--font-body);"
+          />
+        </div>
+        
+        <div class="form-row">
+          <label for="locationInput">Location (optional)</label>
+          <input 
+            type="text" 
+            id="locationInput" 
+            placeholder="e.g., Block A, Laundry Room, Main Cafeteria"
+            style="width:100%; padding:11px 14px; border:1.5px solid var(--gray-200); border-radius:var(--radius); background:var(--gray-100); font-family:var(--font-body);"
+          />
+        </div>
+        
+        <button class="btn btn-primary" id="postBtn" onclick="postItem()" style="width:100%;">
+          📢 Post Lost Item
+        </button>
+        
+        <div class="info-box" style="margin-top:1rem; font-size:0.75rem;">
+          💡 Tip: Include specific details like color, brand, and location to help identify your item.
+        </div>
+      </div>
     </div>
-
-    <div class="card-body">
-
-      <textarea id="descInput" placeholder="Describe the item (e.g. Blue hoodie found near Block B laundry room)" style="width:100%;margin-bottom:10px;"></textarea>
-
-      <input type="text" id="phoneInput" placeholder="Your phone number" />
-
-      <button class="btn btn-green" onclick="postItem()">Post</button>
-
-      <div id="msgBox" style="margin-top:10px;font-weight:600;"></div>
-
+    
+    <!-- RIGHT: Items List -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <h3>📋 Recent Reports</h3>
+        </div>
+        <div class="card-body">
+          <!-- Filter Tabs -->
+          <div class="filter-tabs">
+            <div class="filter-tab active" data-filter="all" onclick="setFilter('all')">All Items</div>
+            <div class="filter-tab" data-filter="lost" onclick="setFilter('lost')">🟠 Lost</div>
+            <div class="filter-tab" data-filter="found" onclick="setFilter('found')">✅ Found</div>
+          </div>
+          
+          <!-- Items Container -->
+          <div id="itemsLoader" class="loader" style="display:flex;">
+            <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+          </div>
+          <div id="itemsList"></div>
+        </div>
+      </div>
+      
+      <!-- Stats Card matching sidebar style -->
+      <div class="sidebar-card" style="margin-top:1rem; background:var(--navy); border:none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h4 style="color:white; margin:0;">Community Stats</h4>
+          <span style="font-size:1.5rem;">🤝</span>
+        </div>
+        <div style="display: flex; gap: 1.5rem;">
+          <div>
+            <div style="font-size:1.8rem; font-weight:800; color:var(--amber);" id="statLostCount">0</div>
+            <div style="font-size:0.7rem; color:rgba(255,255,255,0.7);">Lost</div>
+          </div>
+          <div>
+            <div style="font-size:1.8rem; font-weight:800; color:var(--green);" id="statFoundCount">0</div>
+            <div style="font-size:0.7rem; color:rgba(255,255,255,0.7);">Found</div>
+          </div>
+          <div>
+            <div style="font-size:1.8rem; font-weight:800; color:var(--amber-lt);" id="statTotalCount">0</div>
+            <div style="font-size:0.7rem; color:rgba(255,255,255,0.7);">Total</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-
-  <!-- Items List -->
-  <div class="card">
-    <div class="card-header">
-      <h3>📋 All Posts</h3>
-    </div>
-
-    <div class="card-body">
-      <div id="posts"></div>
-    </div>
-  </div>
-
 </div>
 
 <!-- ── Footer ── -->
 <footer class="footer">
-  <p>© 2024 <strong>DhobiDesk</strong></p>
+  <p>© 2024 <strong>DhobiDesk</strong> — Smart Laundry Coordination for Hostels</p>
 </footer>
 
 <script type="module">
-  import { db } from './firebase.js';
-  import { collection, addDoc, getDocs, query, orderBy }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { db, auth, onAuthStateChanged, logout, checkUserRole } from './firebase.js';
+  import { 
+    collection, addDoc, getDocs, query, orderBy, updateDoc, doc, deleteDoc, onSnapshot 
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  function showMessage(text, type="success") {
-    const box = document.getElementById("msgBox");
-    box.textContent = text;
-    box.style.color = type === "error" ? "red" : "green";
-
-    setTimeout(() => box.textContent = "", 3000);
+  // Global state
+  let allItems = [];
+  let currentFilter = 'all';
+  let unsubscribe = null;
+  let currentUser = null;
+  
+  const lostItemsRef = collection(db, "lostItems");
+  
+  // Auth & Navbar updates
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    const navLinks = document.getElementById('navLinks');
+    
+    if (user) {
+      const role = await checkUserRole(user.uid);
+      if (role === 'student') {
+        navLinks.innerHTML = `
+          <li><a href="schedule.html">Schedule</a></li>
+          <li><a href="student.html">Dashboard</a></li>
+          <li><a href="#" id="logoutNavBtn" class="btn-nav">Logout</a></li>
+        `;
+      } else if (role === 'worker') {
+        navLinks.innerHTML = `
+          <li><a href="schedule.html">Schedule</a></li>
+          <li><a href="worker.html">Dashboard</a></li>
+          <li><a href="#" id="logoutNavBtn" class="btn-nav">Logout</a></li>
+        `;
+      } else {
+        navLinks.innerHTML = `
+          <li><a href="schedule.html">Schedule</a></li>
+          <li><a href="login.html">Login</a></li>
+          <li><a href="signup.html" class="btn-nav">Sign Up</a></li>
+        `;
+      }
+      
+      const logoutBtn = document.getElementById('logoutNavBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          if (unsubscribe) unsubscribe();
+          await logout();
+          window.location.href = 'index.html';
+        });
+      }
+    } else {
+      navLinks.innerHTML = `
+        <li><a href="schedule.html">Schedule</a></li>
+        <li><a href="login.html">Login</a></li>
+        <li><a href="signup.html" class="btn-nav">Sign Up</a></li>
+      `;
+    }
+  });
+  
+  // Real-time listener
+  function startRealtimeListener() {
+    if (unsubscribe) unsubscribe();
+    
+    const q = query(lostItemsRef, orderBy("timestamp", "desc"));
+    unsubscribe = onSnapshot(q, (snapshot) => {
+      allItems = [];
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        allItems.push({
+          id: docSnap.id,
+          desc: data.desc || "",
+          phone: data.phone || "",
+          location: data.location || "",
+          status: data.status || "lost",
+          timestamp: data.timestamp,
+          foundAt: data.foundAt || null,
+          reportedBy: data.reportedBy || null
+        });
+      });
+      
+      updateStats();
+      renderItems();
+      
+      // Hide loader
+      const loader = document.getElementById('itemsLoader');
+      if (loader) loader.style.display = 'none';
+    }, (error) => {
+      console.error("Snapshot error:", error);
+      showAlert("Failed to load items. Please refresh.", "error");
+      const loader = document.getElementById('itemsLoader');
+      if (loader) loader.style.display = 'none';
+    });
   }
-
+  
+  // Update stats
+  function updateStats() {
+    const lostCount = allItems.filter(item => item.status === 'lost').length;
+    const foundCount = allItems.filter(item => item.status === 'found').length;
+    document.getElementById('statLostCount').textContent = lostCount;
+    document.getElementById('statFoundCount').textContent = foundCount;
+    document.getElementById('statTotalCount').textContent = allItems.length;
+  }
+  
+  // Filter logic
+  window.setFilter = function(filter) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      if (tab.getAttribute('data-filter') === filter) {
+        tab.classList.add('active');
+      } else {
+        tab.classList.remove('active');
+      }
+    });
+    renderItems();
+  };
+  
+  function getFilteredItems() {
+    if (currentFilter === 'lost') {
+      return allItems.filter(item => item.status === 'lost');
+    } else if (currentFilter === 'found') {
+      return allItems.filter(item => item.status === 'found');
+    }
+    return allItems;
+  }
+  
+  // Render items
+  function renderItems() {
+    const container = document.getElementById('itemsList');
+    const filtered = getFilteredItems();
+    
+    if (!container) return;
+    
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div class="empty-lost">
+          <div class="empty-icon">🔍</div>
+          <h4>No items found</h4>
+          <p style="font-size:0.85rem; color:var(--gray-600);">${currentFilter === 'lost' ? 'No lost items reported yet. Be the first to post!' : currentFilter === 'found' ? 'No items marked as found yet.' : 'No reports available.'}</p>
+        </div>
+      `;
+      return;
+    }
+    
+    container.innerHTML = filtered.map(item => renderItemCard(item)).join('');
+    
+    // Attach event listeners
+    filtered.forEach(item => {
+      const markBtn = document.getElementById(`markFound-${item.id}`);
+      if (markBtn) {
+        markBtn.onclick = () => markAsFound(item.id);
+      }
+      const deleteBtn = document.getElementById(`deleteItem-${item.id}`);
+      if (deleteBtn) {
+        deleteBtn.onclick = () => deleteItem(item.id);
+      }
+    });
+  }
+  
+  function renderItemCard(item) {
+    const isFound = item.status === 'found';
+    const formattedDate = formatTimestamp(item.timestamp);
+    
+    return `
+      <div class="lost-item ${isFound ? 'resolved' : ''}" id="item-${item.id}">
+        <div class="lost-item-header">
+          <div>
+            ${isFound ? 
+              '<span class="badge-found">✅ FOUND · Ready for pickup</span>' : 
+              '<span class="badge-lost">⚠️ LOST · Looking for owner</span>'
+            }
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            ${!isFound ? `
+              <button class="mark-found-btn" id="markFound-${item.id}">
+                🔍 Mark as Found
+              </button>
+            ` : ''}
+            <button class="delete-btn" id="deleteItem-${item.id}">
+              🗑️ Remove
+            </button>
+          </div>
+        </div>
+        
+        <div class="lost-item-desc">
+          ${escapeHtml(item.desc)}
+        </div>
+        
+        <div class="lost-item-meta">
+          <span>📅 ${formattedDate}</span>
+          ${item.location ? `<span>📍 ${escapeHtml(item.location)}</span>` : ''}
+        </div>
+        
+        <div class="lost-item-contact">
+          <span>📞 Contact: ${escapeHtml(item.phone)}</span>
+        </div>
+        
+        ${isFound ? `
+          <div style="margin-top: 0.75rem; font-size:0.75rem; color:var(--green); background:var(--green-lt); padding:0.5rem 0.75rem; border-radius:var(--radius);">
+            ✅ This item has been marked as found. The owner can claim via the contact info above.
+          </div>
+        ` : `
+          <div style="margin-top: 0.5rem; font-size:0.7rem; color:var(--gray-400);">
+            If you found this item, click "Mark as Found" to help the owner.
+          </div>
+        `}
+      </div>
+    `;
+  }
+  
+  // Mark as found
+  async function markAsFound(itemId) {
+    if (!currentUser) {
+      showAlert("Please login to mark items as found.", "warning");
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 1500);
+      return;
+    }
+    
+    try {
+      const itemRef = doc(db, "lostItems", itemId);
+      await updateDoc(itemRef, {
+        status: "found",
+        foundAt: new Date(),
+        markedBy: currentUser.email || currentUser.uid
+      });
+      showAlert("✅ Item marked as found! The owner will be notified via the contact info.", "success");
+    } catch (err) {
+      console.error("Error marking as found:", err);
+      showAlert("Failed to update status. Please try again.", "error");
+    }
+  }
+  
+  // Delete item
+  async function deleteItem(itemId) {
+    if (!confirm("Are you sure you want to remove this item? This action cannot be undone.")) {
+      return;
+    }
+    
+    try {
+      const itemRef = doc(db, "lostItems", itemId);
+      await deleteDoc(itemRef);
+      showAlert("Item removed successfully.", "success");
+    } catch (err) {
+      console.error("Error deleting item:", err);
+      showAlert("Failed to delete item.", "error");
+    }
+  }
+  
+  // Post new item
   window.postItem = async function () {
     const desc = document.getElementById("descInput").value.trim();
     const phone = document.getElementById("phoneInput").value.trim();
-
+    const location = document.getElementById("locationInput").value.trim();
+    const postBtn = document.getElementById("postBtn");
+    
     if (!desc || !phone) {
-      showMessage("Fill all fields", "error");
+      showAlert("Please fill in both item description and contact number.", "error");
       return;
     }
-
-    await addDoc(collection(db, "lostItems"), {
-      desc,
-      phone,
-      time: new Date()
-    });
-
-    document.getElementById("descInput").value = "";
-    document.getElementById("phoneInput").value = "";
-
-    showMessage("Posted successfully ✅");
-
-    loadPosts();
+    
+    if (desc.length < 5) {
+      showAlert("Please provide a more detailed description (at least 5 characters).", "warning");
+      return;
+    }
+    
+    let reportedByEmail = "anonymous";
+    if (currentUser && currentUser.email) {
+      reportedByEmail = currentUser.email;
+    }
+    
+    postBtn.disabled = true;
+    postBtn.textContent = "Posting...";
+    postBtn.style.opacity = "0.6";
+    
+    try {
+      await addDoc(lostItemsRef, {
+        desc: desc,
+        phone: phone,
+        location: location || "",
+        status: "lost",
+        timestamp: new Date(),
+        reportedBy: reportedByEmail
+      });
+      
+      // Clear form
+      document.getElementById("descInput").value = "";
+      document.getElementById("phoneInput").value = "";
+      document.getElementById("locationInput").value = "";
+      document.getElementById("charCount").textContent = "0";
+      
+      showAlert("✅ Lost item posted successfully! It will appear in the list below.", "success");
+    } catch (err) {
+      console.error("Error posting item:", err);
+      showAlert("Failed to post. Please check your connection and try again.", "error");
+    } finally {
+      postBtn.disabled = false;
+      postBtn.textContent = "📢 Post Lost Item";
+      postBtn.style.opacity = "1";
+    }
   };
-
-  async function loadPosts() {
-    const container = document.getElementById("posts");
-    container.innerHTML = "";
-
-    const q = query(collection(db, "lostItems"), orderBy("time", "desc"));
-    const snapshot = await getDocs(q);
-
-    snapshot.forEach(doc => {
-      const data = doc.data();
-
-      container.innerHTML += `
-        <div class="entry-card" style="margin-bottom:10px;">
-          <div class="entry-meta">
-            <p><strong>${data.desc}</strong></p>
-            <span>📱 ${data.phone}</span>
-          </div>
-        </div>
-      `;
+  
+  // Helper functions
+  function formatTimestamp(timestamp) {
+    if (!timestamp) return "Just now";
+    let date;
+    if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+      date = timestamp.toDate();
+    } else if (timestamp instanceof Date) {
+      date = timestamp;
+    } else if (typeof timestamp === 'object' && timestamp.seconds) {
+      date = new Date(timestamp.seconds * 1000);
+    } else {
+      date = new Date(timestamp);
+    }
+    
+    if (isNaN(date.getTime())) return "Unknown date";
+    
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    
+    return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+  
+  function showAlert(message, type = 'info') {
+    const alertBox = document.getElementById('globalAlert');
+    const icons = { error: '❌', success: '✅', warning: '⚠️', info: 'ℹ️' };
+    alertBox.className = `alert alert-${type}`;
+    alertBox.innerHTML = `${icons[type]} ${message}`;
+    alertBox.style.display = 'flex';
+    
+    setTimeout(() => {
+      alertBox.style.display = 'none';
+    }, 4000);
+  }
+  
+  // Character counter
+  const descInput = document.getElementById('descInput');
+  if (descInput) {
+    descInput.addEventListener('input', function() {
+      const count = this.value.length;
+      document.getElementById('charCount').textContent = count;
+      if (count > 300) {
+        this.value = this.value.substring(0, 300);
+        document.getElementById('charCount').textContent = 300;
+      }
     });
   }
-
-  loadPosts();
+  
+  // Initialize
+  startRealtimeListener();
 </script>
 
 </body>
