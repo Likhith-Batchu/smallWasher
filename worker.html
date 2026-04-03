@@ -349,8 +349,29 @@ window.bulkUpdate = async function (status) {
   for (let id of ids) {
     await updateStatus(id, status);
   }
+  // Bulk shelf assign
+window.bulkAssignShelf = async function () {
+  const ids = getSelectedIds();
+  const shelf = document.getElementById('bulkShelf').value;
 
-  alert("Bulk update done ✅");
+  if (ids.length === 0) {
+    alert("Select at least one entry");
+    return;
+  }
+
+  if (!shelf || isNaN(shelf)) {
+    alert("Enter a valid shelf number");
+    return;
+  }
+
+  for (let id of ids) {
+    await assignShelfNumber(id, shelf);
+  }
+
+  alert("Shelf assigned to selected entries 📦");
+};
+
+  
 };
 </script>
 
