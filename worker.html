@@ -323,6 +323,33 @@
   } catch (err) {
     document.getElementById('assignMsg').innerText = "❌ Error: " + err.message;
   }
+    // ✅ Select All checkbox
+window.toggleSelectAll = function (checkbox) {
+  document.querySelectorAll('.entry-checkbox')
+    .forEach(cb => cb.checked = checkbox.checked);
+};
+
+// ✅ Get selected IDs
+function getSelectedIds() {
+  return Array.from(document.querySelectorAll('.entry-checkbox:checked'))
+    .map(cb => cb.value);
+}
+
+// ✅ Bulk status update
+window.bulkUpdate = async function (status) {
+  const ids = getSelectedIds();
+
+  if (ids.length === 0) {
+    alert("Select at least one entry");
+    return;
+  }
+
+  for (let id of ids) {
+    await updateStatus(id, status);
+  }
+
+  alert("Bulk update done ✅");
+};
 };
 </script>
 
