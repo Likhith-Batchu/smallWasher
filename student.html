@@ -337,9 +337,7 @@
   else if (text.includes("hi") || text.includes("hello")) {
     reply = "Hey! 👋 How can I help you?";
   }
-  else {
-    reply = "Try asking about status, shelf, time, or lost items 😊";
-  }
+  
    else if (text.includes("status") || text.includes("progress") || text.includes("laundry")) {
   reply = "Your laundry status is shown in your dashboard above 👆";
 }
@@ -348,8 +346,11 @@
 }
 
 else if (text.includes("how long") || text.includes("time") || text.includes("duration")) {
-  reply = "Laundry usually takes around 24 hours ⏳.";
+  reply = "Laundry usually takes around 6-7 hours, Based on the Rush⏳.";
 }
+    else {
+    reply = "Try asking about status, shelf, time, or lost items 😊";
+  }
 
   chat.innerHTML += `<p><strong>Bot:</strong> ${reply}</p>`;
 
