@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Worker Dashboard — DhobiDesk</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav class="navbar">
+  <a class="navbar-brand" href="index.html">
+    <div class="logo-icon">🧺</div>
+    <span>DhobiDesk</span>
+  </a>
+  <ul class="navbar-links">
+    <li><a href="schedule.html">Schedule</a></li>
+    <li><a href="#" id="logoutBtn">Logout</a></li>
+  </ul>
+</nav>
+
+<!-- ── Page Header ── -->
+<div class="page-header">
+  <div class="main-wrapper" style="padding-top:0;padding-bottom:0;">
+    <div class="header-badge">👷 Worker Dashboard</div>
+    <h1>Manage Laundry</h1>
+    <p id="workerEmail">Loading…</p>
+  </div>
+</div>
+
+<!-- ── Main Content ── -->
+<div class="main-wrapper">
+
+  <!-- Stats Row -->
+  <div class="stats-row" style="margin-bottom:1.5rem;">
+    <div class="stat-card">
+      <div class="stat-num" id="statTotal">—</div>
+      <div class="stat-label">Total Bags</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statSubmitted">—</div>
+      <div class="stat-label">Submitted</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statProcessing">—</div>
+      <div class="stat-label">Processing</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statCompleted">—</div>
+      <div class="stat-label">Completed</div>
+    </div>
+  </div>
+  
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header">
+      <h3>📌 Assign Room to Student</h3>
+    </div>
+    <div class="card-body">
+
+      <input type="text" id="regInput" placeholder="Registration Number" />
+      <input type="number" id="roomInput" placeholder="Room Number" />
+
+      <button onclick="assignRoom()">Assign</button>
+
+      <div id="assignMsg"></div>
+
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <input type="text" id="searchInput" placeholder="Search by reg. number or tag…" oninput="applyFilters()" style="flex:1;min-width:200px;" />
+    <select id="statusFilter" onchange="applyFilters()">
+      <option value="">All Statuses</option>
+      <option value="Submitted">Submitted</option>
+      <option value="Processing">Processing</option>
+      <option value="Completed">Completed</option>
+    </select>
+    <button class="btn btn-outline btn-sm" onclick="applyFilters()">Filter</button>
+  </div>
+
+  <div class="bulk-actions">
+  <label>
+    <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
+    Select All
+  </label>
+
+  <button class="btn btn-orange btn-sm" onclick="bulkUpdate('Processing')">
+    ⚙️ Mark Processing
+  </button>
+
+  <button class="btn btn-green btn-sm" onclick="bulkUpdate('Completed')">
+    ✅ Mark Completed
+  </button>
+
+  <input type="number" id="bulkShelf" placeholder="Shelf #" min="1" max="5" />
+  <button class="btn btn-navy btn-sm" onclick="bulkAssignShelf()">
+    📦 Assign Shelf
+  </button>
+</div>
+  <!-- Entries Card -->
+  <div class="card">
+    <div class="card-header">
+      <h3>All Laundry Entries</h3>
+      <span id="liveIndicator" style="font-size:0.78rem;color:var(--green);font-weight:600;display:flex;align-items:center;gap:5px;">
+        <span style="width:7px;height:7px;border-radius:50%;background:var(--green);animation:bounce 1s infinite;display:inline-block;"></span>
+        Live Updates
+      </span>
+    </div>
+    <div class="card-body">
+      <div id="entriesLoader" class="loader">
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+      </div>
+      <div class="laundry-entries" id="entriesList" style="display:none;"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Footer ── -->
+<footer class="footer">
+  <p>© 2024 <strong>DhobiDesk</strong> — Smart Laundry Coordination for Hostels</p>
+</footer>
+
+<script type="module">
+  import {
+  auth, onAuthStateChanged, logout, checkUserRole,
+  getAllLaundry, updateStatus, assignShelfNumber,
+  addStudentRoom
+} from './firebase.js';
+
+  let allEntries = [];
+  let unsubscribe = null;
+
+  // ── Auth Guard: only workers allowed ──
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = 'login.html'; return;
+    }
+    const role = await checkUserRole(user.uid);
+    if (role !== 'worker') {
+      // Students shouldn't be here
+      window.location.href = 'student.html'; return;
+    }
+    document.getElementById('workerEmail').textContent = user.email;
+    startRealTimeListener();
+  });
+
+  // ── Logout ──
+  document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (unsubscribe) unsubscribe();
+    await logout();
+    window.location.href = 'index.html';
+  });
+
+  // ── Real-time listener from Firestore ──
+  function startRealTimeListener() {
+    unsubscribe = getAllLaundry((entries) => {
+      allEntries = entries;
+      updateStats(entries);
+      applyFilters();
+
+      document.getElementById('entriesLoader').style.display = 'none';
+      document.getElementById('entriesList').style.display   = 'flex';
+    });
+  }
+
+  // ── Update stats numbers ──
+  function updateStats(entries) {
+    document.getElementById('statTotal').textContent      = entries.length;
+    document.getElementById('statSubmitted').textContent  = entries.filter(e => e.status === 'Submitted').length;
+    document.getElementById('statProcessing').textContent = entries.filter(e => e.status === 'Processing').length;
+    document.getElementById('statCompleted').textContent  = entries.filter(e => e.status === 'Completed').length;
+  }
+
+  // ── Apply search + status filters ──
+  window.applyFilters = function () {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const status = document.getElementById('statusFilter').value;
+
+    const filtered = allEntries.filter(e => {
+      const matchSearch = !search ||
+        e.registrationNumber?.toLowerCase().includes(search) ||
+        String(e.tagNumber).includes(search);
+      const matchStatus = !status || e.status === status;
+      return matchSearch && matchStatus;
+    });
+
+    renderEntries(filtered);
+  };
+
+  // ── Render filtered entries ──
+  function renderEntries(entries) {
+    const list = document.getElementById('entriesList');
+
+    if (entries.length === 0) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <h3>No entries found</h3>
+          <p>Try adjusting your search or filter.</p>
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = entries.map(entry => renderEntry(entry)).join('');
+  }
+
+  // ── Render a single entry (worker view with actions) ──
+  function renderEntry(entry) {
+    const statusBadge = {
+      'Submitted':  `<span class="badge badge-submitted">📋 Submitted</span>`,
+      'Processing': `<span class="badge badge-processing">⚙️ Processing</span>`,
+      'Completed':  `<span class="badge badge-completed">✅ Completed</span>`,
+    }[entry.status] || `<span class="badge badge-submitted">${entry.status}</span>`;
+
+    const date = entry.timestamp?.toDate?.()
+      ? entry.timestamp.toDate().toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+      : '—';
+
+    const completedMsg = entry.status === 'Completed' && entry.shelfNumber
+      ? `<div class="entry-completed-msg">✅ On <strong>Shelf #${entry.shelfNumber}</strong> — ready for pickup</div>`
+      : '';
+
+    // Disable buttons based on current status
+    const isCompleted  = entry.status === 'Completed';
+    const isProcessing = entry.status === 'Processing';
+
+    return `
+      <div class="entry-card" id="card-${entry.id}">
+        <div class="entry-card-header">
+          <div class="entry-card" id="card-${entry.id}">
+  <input type="checkbox" class="entry-checkbox" value="${entry.id}"></span></div>
+          ${statusBadge}
+        </div>
+        <div class="entry-meta">
+          <span>👤 Reg: <strong>${entry.registrationNumber}</strong></span>
+          <span>📧 Email: <strong>${entry.userEmail || '—'}</strong></span>
+          <span>📅 ${date}</span>
+          ${entry.shelfNumber ? `<span>📦 Shelf: <strong>#${entry.shelfNumber}</strong></span>` : ''}
+        </div>
+        ${completedMsg}
+        <div class="worker-actions">
+          <button
+            class="btn btn-orange btn-sm"
+            onclick="markProcessing('${entry.id}')"
+            ${isProcessing || isCompleted ? 'disabled' : ''}
+          >⚙️ Mark Processing</button>
+
+          <button
+            class="btn btn-green btn-sm"
+            onclick="markCompleted('${entry.id}')"
+            ${isCompleted ? 'disabled' : ''}
+          >✅ Mark Completed</button>
+
+          <div class="shelf-input-group">
+            <input
+              type="number"
+              id="shelf-${entry.id}"
+              placeholder="Shelf#"
+              min="1" max="5"
+              value="${entry.shelfNumber || ''}"
+            />
+            <button class="btn btn-navy btn-sm" onclick="saveShelf('${entry.id}')">
+              📦 Assign Shelf
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ── Worker actions ──
+  window.markProcessing = async function (docId) {
+    try {
+      await updateStatus(docId, 'Processing');
+    } catch (err) {
+      alert('Failed to update status: ' + err.message);
+    }
+  };
+
+  window.markCompleted = async function (docId) {
+    try {
+      await updateStatus(docId, 'Completed');
+    } catch (err) {
+      alert('Failed to update status: ' + err.message);
+    }
+  };
+
+  window.saveShelf = async function (docId) {
+    const input = document.getElementById(`shelf-${docId}`);
+    const shelf = input?.value?.trim();
+    if (!shelf || isNaN(shelf)) {
+      alert('Please enter a valid shelf number (1–5).'); return;
+    }
+    try {
+      await assignShelfNumber(docId, shelf);
+    } catch (err) {
+      alert('Failed to assign shelf: ' + err.message);
+    }
+  };
+  window.assignRoom = async function () {
+  const reg = document.getElementById('regInput').value.trim();
+  const room = parseInt(document.getElementById('roomInput').value);
+
+  if (!reg || !room) {
+    alert("Enter both registration number and room number");
+    return;
+  }
+
+  try {
+    await addStudentRoom(reg, room);
+    document.getElementById('assignMsg').innerText = "✅ Assigned successfully";
+    
+    // Clear inputs
+    document.getElementById('regInput').value = '';
+    document.getElementById('roomInput').value = '';
+    
+  } catch (err) {
+    document.getElementById('assignMsg').innerText = "❌ Error: " + err.message;
+  }
+};
+</script>
+
+</body>
+</html>

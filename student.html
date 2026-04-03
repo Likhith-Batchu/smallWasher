@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Dashboard — DhobiDesk</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav class="navbar">
+  <a class="navbar-brand" href="index.html">
+    <div class="logo-icon">🧺</div>
+    <span>DhobiDesk</span>
+  </a>
+  <ul class="navbar-links">
+    <li><a href="schedule.html">Schedule</a></li>
+    <li><a href="#" id="logoutBtn">Logout</a></li>
+  </ul>
+</nav>
+
+<!-- ── Page Header ── -->
+<div class="page-header">
+  <div class="main-wrapper" style="padding-top:0;padding-bottom:0;">
+    <div class="header-badge">🎓 Student Dashboard</div>
+    <h1>My Laundry</h1>
+    <p id="userEmailDisplay">Loading…</p>
+  </div>
+</div>
+
+<!-- ── Main Content ── -->
+<div class="main-wrapper">
+  <div class="dashboard-grid">
+
+    <!-- ── Left Sidebar ── -->
+    <aside class="sidebar">
+
+      <!-- User Card -->
+      <div class="sidebar-user-card">
+        <div class="user-avatar">🎓</div>
+        <h4 id="sidebarEmail">Loading…</h4>
+        <p>Student Account</p>
+      </div>
+
+      <!-- Submit Laundry Card -->
+      <div class="sidebar-card">
+        <h4>🧾 Submit Laundry</h4>
+
+        <div id="submitAlert" style="margin-bottom:0.75rem;display:none;"></div>
+
+        <div class="form-group" style="margin-bottom:0.75rem;">
+          <label for="regNumber" style="font-size:0.78rem;">Registration Number</label>
+          <input type="text" id="regNumber" placeholder="e.g. 20CS140" style="margin-top:4px;" />
+        </div>
+
+        <div id="scheduleCheck" style="font-size:0.8rem;color:var(--gray-400);margin-bottom:0.75rem;"></div>
+
+        <button class="btn btn-primary" id="submitBtn" onclick="submitLaundry()" style="width:100%;justify-content:center;">
+          Submit Laundry Bag
+        </button>
+
+        <div style="font-size:0.78rem;color:var(--gray-400);margin-top:0.75rem;line-height:1.5;">
+          ℹ️ Submission is only allowed on your scheduled day.
+        </div>
+      </div>
+
+      <!-- Schedule Quick View -->
+      <div class="sidebar-card">
+        <h4>📅 Today's Schedule</h4>
+        <div id="todaySchedule" style="font-size:0.875rem;color:var(--gray-600);margin-top:0.5rem;"></div>
+        <a href="schedule.html" style="font-size:0.8rem;margin-top:0.75rem;display:inline-block;">View full schedule →</a>
+      </div>
+
+    </aside>
+
+    <!-- ── Right Content ── -->
+    <main>
+
+      <!-- Stats -->
+      <div class="stats-row" id="statsRow">
+        <div class="stat-card">
+          <div class="stat-num" id="statTotal">—</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statProcessing">—</div>
+          <div class="stat-label">Processing</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statCompleted">—</div>
+          <div class="stat-label">Completed</div>
+        </div>
+      </div>
+
+      <!-- Entries -->
+      <div class="card">
+        <div class="card-header">
+          <h3>My Laundry Entries</h3>
+          <button class="btn btn-outline btn-sm" onclick="loadEntries()">↻ Refresh</button>
+        </div>
+        <div class="card-body">
+          <div id="entriesLoader" class="loader">
+            <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+          </div>
+          <div class="laundry-entries" id="entriesList" style="display:none;"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ── Footer ── -->
+<footer class="footer">
+  <p>© 2024 <strong>DhobiDesk</strong> — Smart Laundry Coordination for Hostels</p>
+</footer>
+
+<script type="module">
+  import {
+    auth, onAuthStateChanged, logout, checkUserRole,
+    addLaundry, getLaundryByUser, isSubmissionAllowed
+  } from './firebase.js';
+
+  let currentUser = null;
+
+  // ── Auth Guard: only students allowed ──
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = 'login.html'; return;
+    }
+    const role = await checkUserRole(user.uid);
+    if (role === 'worker') {
+      // Workers shouldn't be here
+      window.location.href = 'worker.html'; return;
+    }
+    currentUser = user;
+    document.getElementById('userEmailDisplay').textContent = user.email;
+    document.getElementById('sidebarEmail').textContent = user.email;
+    showTodaySchedule();
+    loadEntries();
+  });
+
+  // ── Logout ──
+  document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    await logout();
+    window.location.href = 'index.html';
+  });
+
+  // ── Show today's schedule in sidebar ──
+  function showTodaySchedule() {
+    const schedule = {
+      1: 'Monday → Rooms 101–140',
+      2: 'Tuesday → Rooms 201–240',
+      3: 'Wednesday → Rooms 301–340',
+      4: 'Thursday → Rooms 401–440',
+      5: 'Friday → Rooms 501–540',
+      6: 'Saturday → Rooms 601–640',
+      0: 'Sunday → Rooms 701–740',
+    };
+    const today = new Date().getDay();
+    const el = document.getElementById('todaySchedule');
+    el.innerHTML = `<span class="badge badge-processing" style="margin-bottom:4px;">Today</span><br>${schedule[today] || 'Check schedule page'}`;
+  }
+
+  // ── Load and render laundry entries ──
+  window.loadEntries = async function () {
+    if (!currentUser) return;
+    const loader = document.getElementById('entriesLoader');
+    const list   = document.getElementById('entriesList');
+    loader.style.display = 'flex';
+    list.style.display   = 'none';
+
+    try {
+      const entries = await getLaundryByUser(currentUser.email);
+      loader.style.display = 'none';
+      list.style.display   = 'flex';
+
+      // Update stats
+      document.getElementById('statTotal').textContent      = entries.length;
+      document.getElementById('statProcessing').textContent = entries.filter(e => e.status === 'Processing').length;
+      document.getElementById('statCompleted').textContent  = entries.filter(e => e.status === 'Completed').length;
+
+      if (entries.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🧺</div>
+            <h3>No laundry submitted yet</h3>
+            <p>Submit your laundry bag on your scheduled day using the form on the left.</p>
+          </div>`;
+        return;
+      }
+
+      // Sort by timestamp descending (newest first)
+      entries.sort((a, b) => {
+        const ta = a.timestamp?.toMillis?.() || 0;
+        const tb = b.timestamp?.toMillis?.() || 0;
+        return tb - ta;
+      });
+
+      list.innerHTML = entries.map(entry => renderEntry(entry)).join('');
+    } catch (err) {
+      loader.style.display = 'none';
+      list.style.display   = 'flex';
+      list.innerHTML = `<div class="alert alert-error">❌ Failed to load entries. ${err.message}</div>`;
+    }
+  };
+
+  // ── Render a single laundry entry ──
+  function renderEntry(entry) {
+    const statusBadge = {
+      'Submitted':  `<span class="badge badge-submitted">📋 Submitted</span>`,
+      'Processing': `<span class="badge badge-processing">⚙️ Processing</span>`,
+      'Completed':  `<span class="badge badge-completed">✅ Completed</span>`,
+    }[entry.status] || `<span class="badge badge-submitted">${entry.status}</span>`;
+
+    const completedMsg = entry.status === 'Completed' && entry.shelfNumber
+      ? `<div class="entry-completed-msg">🎉 Laundry ready! Collect from <strong>Shelf #${entry.shelfNumber}</strong></div>`
+      : entry.status === 'Completed'
+      ? `<div class="entry-completed-msg">✅ Laundry completed. Shelf number will be assigned soon.</div>`
+      : '';
+
+    const date = entry.timestamp?.toDate?.()
+      ? entry.timestamp.toDate().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })
+      : '—';
+
+    return `
+      <div class="entry-card">
+        <div class="entry-card-header">
+          <div class="entry-tag">Tag <span>#${entry.tagNumber}</span></div>
+          ${statusBadge}
+        </div>
+        <div class="entry-meta">
+          <span>📋 Reg: <strong>${entry.registrationNumber}</strong></span>
+          <span>📅 Date: <strong>${date}</strong></span>
+          ${entry.shelfNumber ? `<span>📦 Shelf: <strong>#${entry.shelfNumber}</strong></span>` : ''}
+        </div>
+        ${completedMsg}
+      </div>
+    `;
+  }
+
+  // ── Submit Laundry ──
+  window.submitLaundry = async function () {
+    const regNumber = document.getElementById('regNumber').value.trim().toUpperCase();
+    const btn       = document.getElementById('submitBtn');
+    const alertBox  = document.getElementById('submitAlert');
+
+    function showAlert(msg, type) {
+      alertBox.className = `alert alert-${type}`;
+      alertBox.innerHTML = msg;
+      alertBox.style.display = 'flex';
+    }
+
+    if (!regNumber) {
+      showAlert('❌ Please enter your registration number.', 'error'); return;
+    }
+
+    // Check schedule eligibility
+    const check = await isSubmissionAllowed(regNumber);
+
+    if (!check.allowed) {
+      showAlert(`⚠️ ${check.message}`, 'warning');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    try {
+      const result = await addLaundry(regNumber, currentUser.email);
+      showAlert(`✅ Submitted! Your tag number is <strong>#${result.tagNumber}</strong>. Track below.`, 'success');
+      document.getElementById('regNumber').value = '';
+      await loadEntries();
+    } catch (err) {
+      showAlert(`❌ Submission failed: ${err.message}`, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Submit Laundry Bag';
+    }
+  };
+
+  // ── Live check on registration number input ──
+  document.getElementById('regNumber').addEventListener('input', function () {
+    const val = this.value.trim().toUpperCase();
+    const el  = document.getElementById('scheduleCheck');
+    if (!val) { el.textContent = ''; return; }
+    const check = isSubmissionAllowed(val);
+    el.innerHTML = check.allowed
+      ? `<span style="color:var(--green);">✅ You can submit today!</span>`
+      : `<span style="color:var(--orange);">⚠️ ${check.reason}</span>`;
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laundry Schedule — DhobiDesk</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav class="navbar">
+  <a class="navbar-brand" href="index.html">
+    <div class="logo-icon">🧺</div>
+    <span>DhobiDesk</span>
+  </a>
+  <ul class="navbar-links" id="navLinks">
+    <li><a href="schedule.html">Schedule</a></li>
+    <li><a href="login.html">Login</a></li>
+    <li><a href="signup.html" class="btn-nav">Sign Up</a></li>
+  </ul>
+</nav>
+
+<!-- ── Page Header ── -->
+<div class="page-header">
+  <div class="main-wrapper" style="padding-top:0;padding-bottom:0;">
+    <div class="header-badge">📅 Weekly Schedule</div>
+    <h1>Laundry Schedule</h1>
+    <p>Check your assigned day based on your room number</p>
+  </div>
+</div>
+
+<!-- ── Main Content ── -->
+<div class="main-wrapper">
+
+  <!-- Info box -->
+  <div class="info-box" style="margin-bottom:1.5rem;">
+    ℹ️ Laundry submission is only allowed on your assigned day. Make sure to submit before 10 AM.
+  </div>
+
+  <!-- Today highlight -->
+  <div id="todayAlert" style="margin-bottom:1.5rem;"></div>
+
+  <!-- Schedule Grid -->
+  <div class="schedule-grid" id="scheduleGrid">
+    <!-- Injected by JS -->
+  </div>
+
+  <!-- Shelf System Info -->
+  <div class="card" style="margin-top:2.5rem;">
+    <div class="card-header">
+      <h3>📦 Smart Shelf System</h3>
+    </div>
+    <div class="card-body">
+      <p style="margin-bottom:1rem;">When your laundry is ready, you'll be directed to a specific shelf number. This eliminates searching across all shelves.</p>
+      <div class="shelf-legend">
+        <div class="shelf-item"><strong>Shelf 1</strong><br><span style="font-size:0.78rem;color:var(--gray-400);">Tags 1–200</span></div>
+        <div class="shelf-item"><strong>Shelf 2</strong><br><span style="font-size:0.78rem;color:var(--gray-400);">Tags 201–400</span></div>
+        <div class="shelf-item"><strong>Shelf 3</strong><br><span style="font-size:0.78rem;color:var(--gray-400);">Tags 401–600</span></div>
+        <div class="shelf-item"><strong>Shelf 4</strong><br><span style="font-size:0.78rem;color:var(--gray-400);">Tags 601–800</span></div>
+        <div class="shelf-item"><strong>Shelf 5</strong><br><span style="font-size:0.78rem;color:var(--gray-400);">Tags 801–1000</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Footer ── -->
+<footer class="footer">
+  <p>© 2024 <strong>DhobiDesk</strong> — Smart Laundry Coordination for Hostels</p>
+</footer>
+
+<script type="module">
+  import { auth, onAuthStateChanged, checkUserRole, logout } from './firebase.js';
+
+  // Update nav links if user is logged in
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const role = await checkUserRole(user.uid);
+      const nav = document.getElementById('navLinks');
+      nav.innerHTML = `
+        <li><a href="schedule.html">Schedule</a></li>
+        <li><a href="${role === 'worker' ? 'worker.html' : 'student.html'}">Dashboard</a></li>
+        <li><a href="#" onclick="handleLogout()" class="btn-nav">Logout</a></li>
+      `;
+    }
+  });
+
+  window.handleLogout = async () => {
+    await logout();
+    window.location.href = 'index.html';
+  };
+
+  // Weekly schedule data
+  const schedule = [
+    { day: 'Monday',    rooms: '101–140', dayIndex: 1 },
+    { day: 'Tuesday',   rooms: '201–240', dayIndex: 2 },
+    { day: 'Wednesday', rooms: '301–340', dayIndex: 3 },
+    { day: 'Thursday',  rooms: '401–440', dayIndex: 4 },
+    { day: 'Friday',    rooms: '501–540', dayIndex: 5 },
+    { day: 'Saturday',  rooms: '601–640', dayIndex: 6 },
+    { day: 'Sunday',    rooms: '701–740', dayIndex: 0 },
+  ];
+
+  const todayIndex = new Date().getDay();
+  const todayData  = schedule.find(s => s.dayIndex === todayIndex);
+
+  // Render schedule cards
+  const grid = document.getElementById('scheduleGrid');
+  schedule.forEach(s => {
+    const isToday = s.dayIndex === todayIndex;
+    grid.innerHTML += `
+      <div class="schedule-day ${isToday ? 'today' : ''}">
+        <div class="schedule-day-header">
+          <h3>${s.day}</h3>
+          ${isToday ? '<span class="today-pill">Today</span>' : ''}
+        </div>
+        <div class="schedule-day-body">
+          <div class="room-range">Rooms ${s.rooms}</div>
+          <div class="room-label">Laundry day for rooms in this range</div>
+        </div>
+      </div>
+    `;
+  });
+
+  // Today alert
+  if (todayData) {
+    document.getElementById('todayAlert').innerHTML = `
+      <div class="alert alert-success">
+        ✅ Today is <strong>${todayData.day}</strong> — Laundry day for <strong>Rooms ${todayData.rooms}</strong>. Submission is open!
+      </div>
+    `;
+  } else {
+    document.getElementById('todayAlert').innerHTML = `
+      <div class="alert alert-info">
+        📅 Check the schedule below to find your assigned laundry day.
+      </div>
+    `;
+  }
+</script>
+
+</body>
+</html>
