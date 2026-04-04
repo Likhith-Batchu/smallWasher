@@ -470,33 +470,51 @@
   };
 
   // ── Load Express Requests with FULL STATUS DISPLAY ──
-  async function loadExpressRequests() {
-    if (!currentUser) return;
-    const loader = document.getElementById('expressLoader');
-    const content = document.getElementById('expressRequestsContent');
+  // ── Load Express Requests with better error handling ──
+async function loadExpressRequests() {
+  if (!currentUser) {
+    console.log('No current user found');
+    return;
+  }
+  
+  const loader = document.getElementById('expressLoader');
+  const content = document.getElementById('expressRequestsContent');
+  
+  if (!loader || !content) {
+    console.log('Express request containers not found');
+    return;
+  }
+  
+  loader.style.display = 'flex';
+  content.innerHTML = '';
+  
+  try {
+    console.log('Fetching express requests for:', currentUser.email);
+    const requests = await getStudentExpressRequests(currentUser.email);
+    console.log('Requests received:', requests);
     
-    if (!loader || !content) {
-      console.log('Express request containers not found');
+    loader.style.display = 'none';
+    
+    if (!requests || requests.length === 0) {
+      content.innerHTML = `
+        <div style="text-align:center; padding:1rem; color:var(--gray-400); font-size:0.8rem;">
+          📭 No express requests yet
+        </div>`;
       return;
     }
     
-    loader.style.display = 'flex';
-    content.innerHTML = '';
-    
-    try {
-      const requests = await getStudentExpressRequests(currentUser.email);
-      loader.style.display = 'none';
-      
-      if (requests.length === 0) {
-        content.innerHTML = `<div style="text-align:center; padding:1rem; color:var(--gray-400); font-size:0.8rem;">No express requests yet</div>`;
-        return;
-      }
-      content.innerHTML = requests.map(req => renderExpressRequest(req)).join('');
-    } catch (err) {
-      loader.style.display = 'none';
-      content.innerHTML = `<div class="alert alert-error">Failed to load requests</div>`;
-    }
+    content.innerHTML = requests.map(req => renderExpressRequest(req)).join('');
+  } catch (err) {
+    console.error('Error loading express requests:', err);
+    loader.style.display = 'none';
+    // Show a more helpful message instead of just "Failed to load"
+    content.innerHTML = `
+      <div style="text-align:center; padding:1rem; color:var(--orange); font-size:0.8rem;">
+        ⚠️ Unable to load requests. Please refresh the page.
+        <br><small>Error: ${err.message}</small>
+      </div>`;
   }
+}
 
   // ── Render Express Request with FULL STATUS and DETAILS ──
   function renderExpressRequest(request) {
