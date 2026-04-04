@@ -195,13 +195,15 @@ async function isSubmissionAllowed(registrationNumber) {
 // EXPRESS SERVICE FUNCTIONS
 // ============================================================
 
-async function submitExpressRequest(registrationNumber, userEmail, reason, details, requestedDate, specialInstructions) {
-  const tagNumber = await getNextTagNumber();
-  
+// ============================================================
+// EXPRESS SERVICE FUNCTIONS
+// ============================================================
+
+async function submitExpressRequest(registrationNumber, userEmail, tagNumber, reason, details, requestedDate, specialInstructions) {
   const docRef = await addDoc(collection(db, "expressRequests"), {
     registrationNumber: registrationNumber,
     userEmail: userEmail,
-    tagNumber: tagNumber,
+    tagNumber: parseInt(tagNumber),
     reason: reason,
     details: details || "",
     specialInstructions: specialInstructions || "",
