@@ -176,10 +176,11 @@
 </footer>
 
 <script type="module">
-  import {
-    auth, onAuthStateChanged, logout, checkUserRole,
-    addLaundry, getLaundryByUser, isSubmissionAllowed
-  } from './firebase.js';
+  import { 
+  auth, onAuthStateChanged, logout, checkUserRole,
+  addLaundry, getLaundryByUser, isSubmissionAllowed,
+  submitExpressRequest, getStudentExpressRequests
+} from './firebase.js';
 
   let currentUser = null;
 
