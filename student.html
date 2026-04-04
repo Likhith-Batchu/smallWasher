@@ -37,96 +37,111 @@
     <!-- ── Left Sidebar ── -->
     <aside class="sidebar">
 
-      <!-- User Card -->
+      <!-- 1. User Card -->
       <div class="sidebar-user-card">
         <div class="user-avatar">🎓</div>
         <h4 id="sidebarEmail">Loading…</h4>
         <p>Student Account</p>
       </div>
 
-      <!-- Submit Laundry Card -->
+      <!-- 2. Submit Laundry Card -->
       <div class="sidebar-card">
         <h4>🧾 Submit Laundry</h4>
-
         <div id="submitAlert" style="margin-bottom:0.75rem;display:none;"></div>
-
         <div class="form-group" style="margin-bottom:0.75rem;">
           <label for="regNumber" style="font-size:0.78rem;">Registration Number</label>
           <input type="text" id="regNumber" placeholder="e.g. 20CS140" style="margin-top:4px;" />
         </div>
-
         <div class="form-group" style="margin-bottom:0.75rem;">
           <label for="tagNumber" style="font-size:0.78rem;">Tag Number</label>
           <input type="number" id="tagNumber" placeholder="Enter tag on your bag" style="margin-top:4px;" />
         </div>
         <div id="scheduleCheck" style="font-size:0.8rem;color:var(--gray-400);margin-bottom:0.75rem;"></div>
-
         <button class="btn btn-primary" id="submitBtn" onclick="submitLaundry()" style="width:100%;justify-content:center;">
           Submit Laundry Bag
         </button>
-
         <div style="font-size:0.78rem;color:var(--gray-400);margin-top:0.75rem;line-height:1.5;">
           ℹ️ Submission is only allowed on your scheduled day.
         </div>
       </div>
 
-      <!-- Express Service Card -->
-      <div class="sidebar-card" style="border: 2px solid var(--amber); background: linear-gradient(135deg, var(--white) 0%, var(--cream) 100%);">
-        <h4>⚡ Express Service</h4>
-        <div style="font-size:0.7rem; color:var(--amber); margin-bottom:0.5rem; font-weight:600;">
-          🚀 For Urgent Needs - Exams, Interviews, Medical
+      <!-- 3. MY EXPRESS REQUESTS - DISPLAY STUDENT'S REQUESTS -->
+      <div class="sidebar-card">
+        <h4>⚡ My Express Requests</h4>
+        <div id="expressLoader" class="loader" style="display:flex;">
+          <div class="loader-dot"></div>
+          <div class="loader-dot"></div>
+          <div class="loader-dot"></div>
         </div>
-        
-        <div id="expressAlert" style="margin-bottom:0.75rem;display:none;"></div>
-        
-        <div class="form-group" style="margin-bottom:0.75rem;">
-          <label for="expressRegNumber" style="font-size:0.78rem;">Registration Number</label>
-          <input type="text" id="expressRegNumber" placeholder="e.g. 20CS140" style="margin-top:4px;" />
-        </div>
-        
-        <div class="form-group" style="margin-bottom:0.75rem;">
-          <label for="expressReason" style="font-size:0.78rem;">Reason for Express Service *</label>
-          <select id="expressReason" style="width:100%; padding:8px; border-radius:var(--radius); border:1.5px solid var(--gray-200);">
-            <option value="">Select reason...</option>
-            <option value="exam">📝 Upcoming Exam</option>
-            <option value="interview">💼 Job Interview</option>
-            <option value="medical">🏥 Medical Emergency</option>
-            <option value="travel">✈️ Travel/Urgent Trip</option>
-            <option value="other">📌 Other Reason</option>
-          </select>
-        </div>
-        
-        <div class="form-group" style="margin-bottom:0.75rem;">
-          <label for="expressDetails" style="font-size:0.78rem;">Detailed Explanation *</label>
-          <textarea id="expressDetails" rows="3" placeholder="Please explain why you need express service" style="width:100%; padding:8px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.8rem;"></textarea>
-        </div>
-        
-        <div class="form-group" style="margin-bottom:0.75rem;">
-          <label for="expressDate" style="font-size:0.78rem;">When do you need it by? *</label>
-          <input type="datetime-local" id="expressDate" style="width:100%; padding:8px; border-radius:var(--radius); border:1.5px solid var(--gray-200);" />
-        </div>
-        
-        <div class="form-group" style="margin-bottom:0.75rem;">
-          <label for="specialInstructions" style="font-size:0.78rem;">Special Instructions (Optional)</label>
-          <textarea id="specialInstructions" rows="2" placeholder="e.g., 'Handle with care', 'Specific detergent needed'" style="width:100%; padding:8px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.8rem;"></textarea>
-        </div>
-        
-        <button class="btn btn-primary" id="expressSubmitBtn" onclick="submitExpressRequest()" style="width:100%; justify-content:center; background:var(--amber); color:var(--navy);">
-          ⚡ Submit Express Request (+₹100)
-        </button>
-        
-        <div style="font-size:0.7rem; color:var(--gray-400); margin-top:0.75rem; line-height:1.4;">
-          ⚡ Express service includes priority processing within 6 hours.
-        </div>
+        <div id="expressRequestsContent" style="max-height: 250px; overflow-y: auto;"></div>
       </div>
 
-     
-
-      <!-- Schedule Quick View -->
+      <!-- 4. Schedule Quick View -->
       <div class="sidebar-card">
         <h4>📅 Today's Schedule</h4>
         <div id="todaySchedule" style="font-size:0.875rem;color:var(--gray-600);margin-top:0.5rem;"></div>
         <a href="schedule.html" style="font-size:0.8rem;margin-top:0.75rem;display:inline-block;">View full schedule →</a>
+      </div>
+
+      <!-- 5. Express Service Card (COMPACT & COLLAPSIBLE - BOTTOM) -->
+      <div class="sidebar-card" style="border: 2px solid var(--amber); background: linear-gradient(135deg, var(--white) 0%, var(--cream) 100%); padding: 0.75rem;">
+        <details style="cursor: pointer;">
+          <summary style="font-weight: 700; font-size: 0.85rem; color: var(--amber); display: flex; align-items: center; gap: 8px;">
+            <span>⚡ Express Service</span>
+            <span style="font-size: 0.65rem; color: var(--gray-500);">(₹100 - Priority)</span>
+          </summary>
+          
+          <div style="margin-top: 0.75rem;">
+            <div id="expressAlert" style="margin-bottom:0.5rem;display:none; font-size:0.7rem;"></div>
+            
+            <!-- Registration Number -->
+            <div class="form-group" style="margin-bottom:0.5rem;">
+              <label for="expressRegNumber" style="font-size:0.7rem;">Registration Number *</label>
+              <input type="text" id="expressRegNumber" placeholder="e.g. 20CS140" style="margin-top:2px; padding:6px; font-size:0.75rem;" />
+            </div>
+            
+            <!-- Tag Number -->
+            <div class="form-group" style="margin-bottom:0.5rem;">
+              <label for="expressTagNumber" style="font-size:0.7rem;">Tag Number on Your Bag *</label>
+              <input type="number" id="expressTagNumber" placeholder="Enter tag number" style="margin-top:2px; padding:6px; font-size:0.75rem;" />
+            </div>
+            
+            <!-- Reason -->
+            <div class="form-group" style="margin-bottom:0.5rem;">
+              <label for="expressReason" style="font-size:0.7rem;">Reason *</label>
+              <select id="expressReason" style="width:100%; padding:6px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.75rem;">
+                <option value="">Select...</option>
+                <option value="exam">📝 Exam</option>
+                <option value="interview">💼 Interview</option>
+                <option value="medical">🏥 Medical</option>
+                <option value="travel">✈️ Travel</option>
+                <option value="other">📌 Other</option>
+              </select>
+            </div>
+            
+            <!-- Details -->
+            <div class="form-group" style="margin-bottom:0.5rem;">
+              <label for="expressDetails" style="font-size:0.7rem;">Details *</label>
+              <textarea id="expressDetails" rows="2" placeholder="Why need express?" style="width:100%; padding:6px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.75rem;"></textarea>
+            </div>
+            
+            <!-- Need by Date -->
+            <div class="form-group" style="margin-bottom:0.5rem;">
+              <label for="expressDate" style="font-size:0.7rem;">Need by *</label>
+              <input type="datetime-local" id="expressDate" style="width:100%; padding:6px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.75rem;" />
+            </div>
+            
+            <!-- Special Instructions -->
+            <div class="form-group" style="margin-bottom:0.5rem;">
+              <label for="specialInstructions" style="font-size:0.7rem;">Special Instructions</label>
+              <textarea id="specialInstructions" rows="1" placeholder="Optional" style="width:100%; padding:6px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.75rem;"></textarea>
+            </div>
+            
+            <button class="btn btn-primary" id="expressSubmitBtn" onclick="submitExpressRequest()" style="width:100%; padding:6px; font-size:0.75rem; background:var(--amber); color:var(--navy);">
+              ⚡ Submit Express (+₹100)
+            </button>
+          </div>
+        </details>
       </div>
 
     </aside>
@@ -169,67 +184,7 @@
     </main>
   </div>
 </div>
- <!-- Express Service Card - COMPACT VERSION -->
-<!-- Express Service Card (COMPACT & COLLAPSIBLE - BOTTOM) -->
-<div class="sidebar-card" style="border: 2px solid var(--amber); background: linear-gradient(135deg, var(--white) 0%, var(--cream) 100%); padding: 0.75rem;">
-  <details style="cursor: pointer;">
-    <summary style="font-weight: 700; font-size: 0.85rem; color: var(--amber); display: flex; align-items: center; gap: 8px;">
-      <span>⚡ Express Service</span>
-      <span style="font-size: 0.65rem; color: var(--gray-500);">(₹100 - Priority)</span>
-    </summary>
-    
-    <div style="margin-top: 0.75rem;">
-      <div id="expressAlert" style="margin-bottom:0.5rem;display:none; font-size:0.7rem;"></div>
-      
-      <!-- Registration Number -->
-      <div class="form-group" style="margin-bottom:0.5rem;">
-        <label for="expressRegNumber" style="font-size:0.7rem;">Registration Number *</label>
-        <input type="text" id="expressRegNumber" placeholder="e.g. 20CS140" style="margin-top:2px; padding:6px; font-size:0.75rem;" />
-      </div>
-      
-      <!-- Tag Number (NEW FIELD) -->
-      <div class="form-group" style="margin-bottom:0.5rem;">
-        <label for="expressTagNumber" style="font-size:0.7rem;">Tag Number on Your Bag *</label>
-        <input type="number" id="expressTagNumber" placeholder="Enter tag number" style="margin-top:2px; padding:6px; font-size:0.75rem;" />
-      </div>
-      
-      <!-- Reason -->
-      <div class="form-group" style="margin-bottom:0.5rem;">
-        <label for="expressReason" style="font-size:0.7rem;">Reason *</label>
-        <select id="expressReason" style="width:100%; padding:6px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.75rem;">
-          <option value="">Select...</option>
-          <option value="exam">📝 Exam</option>
-          <option value="interview">💼 Interview</option>
-          <option value="medical">🏥 Medical</option>
-          <option value="travel">✈️ Travel</option>
-          <option value="other">📌 Other</option>
-        </select>
-      </div>
-      
-      <!-- Details -->
-      <div class="form-group" style="margin-bottom:0.5rem;">
-        <label for="expressDetails" style="font-size:0.7rem;">Details *</label>
-        <textarea id="expressDetails" rows="2" placeholder="Why need express?" style="width:100%; padding:6px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.75rem;"></textarea>
-      </div>
-      
-      <!-- Need by Date -->
-      <div class="form-group" style="margin-bottom:0.5rem;">
-        <label for="expressDate" style="font-size:0.7rem;">Need by *</label>
-        <input type="datetime-local" id="expressDate" style="width:100%; padding:6px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.75rem;" />
-      </div>
-      
-      <!-- Special Instructions -->
-      <div class="form-group" style="margin-bottom:0.5rem;">
-        <label for="specialInstructions" style="font-size:0.7rem;">Special Instructions</label>
-        <textarea id="specialInstructions" rows="1" placeholder="Optional" style="width:100%; padding:6px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.75rem;"></textarea>
-      </div>
-      
-      <button class="btn btn-primary" id="expressSubmitBtn" onclick="submitExpressRequest()" style="width:100%; padding:6px; font-size:0.75rem; background:var(--amber); color:var(--navy);">
-        ⚡ Submit Express (+₹100)
-      </button>
-    </div>
-  </details>
-</div>
+
 <!-- Chatbot Section -->
 <div class="main-wrapper" style="padding-top: 0; padding-bottom: 2rem;">
   <div class="card chat-container">
@@ -304,7 +259,7 @@
     document.getElementById('sidebarEmail').textContent = user.email;
     showTodaySchedule();
     loadEntries();
-    loadExpressRequests(); // ✅ ADD THIS LINE
+    loadExpressRequests();
   });
 
   // ── Logout ──
@@ -464,85 +419,89 @@
     }
   });
 
-  // ── Express Service Functions ──
   // ── Submit Express Request ──
-window.submitExpressRequest = async function () {
-  const regNumber = document.getElementById('expressRegNumber').value.trim().toUpperCase();
-  const tagNumber = document.getElementById('expressTagNumber').value.trim();
-  const reason = document.getElementById('expressReason').value;
-  const details = document.getElementById('expressDetails').value.trim();
-  const requestedDate = document.getElementById('expressDate').value;
-  const specialInstructions = document.getElementById('specialInstructions').value.trim();
-  const alertBox = document.getElementById('expressAlert');
-  
-  function showAlert(msg, type) {
-    alertBox.className = `alert alert-${type}`;
-    alertBox.innerHTML = msg;
-    alertBox.style.display = 'flex';
-    setTimeout(() => { alertBox.style.display = 'none'; }, 5000);
-  }
-  
-  // Validation
-  if (!regNumber) {
-    showAlert('❌ Please enter your registration number.', 'error');
-    return;
-  }
-  
-  if (!tagNumber) {
-    showAlert('❌ Please enter the tag number on your bag.', 'error');
-    return;
-  }
-  
-  if (isNaN(tagNumber) || tagNumber <= 0) {
-    showAlert('❌ Please enter a valid tag number.', 'error');
-    return;
-  }
-  
-  if (!reason) {
-    showAlert('❌ Please select a reason for express service.', 'error');
-    return;
-  }
-  
-  if (!details) {
-    showAlert('❌ Please explain why you need express service.', 'error');
-    return;
-  }
-  
-  if (!requestedDate) {
-    showAlert('❌ Please specify when you need the laundry ready.', 'error');
-    return;
-  }
-  
-  const btn = document.getElementById('expressSubmitBtn');
-  btn.disabled = true;
-  btn.textContent = 'Submitting...';
-  
-  try {
-    const result = await submitExpressRequest(regNumber, currentUser.email, tagNumber, reason, details, requestedDate, specialInstructions);
-    showAlert(`✅ Express request submitted! Tag #${result.tagNumber}`, 'success');
+  window.submitExpressRequest = async function () {
+    const regNumber = document.getElementById('expressRegNumber').value.trim().toUpperCase();
+    const tagNumber = document.getElementById('expressTagNumber').value.trim();
+    const reason = document.getElementById('expressReason').value;
+    const details = document.getElementById('expressDetails').value.trim();
+    const requestedDate = document.getElementById('expressDate').value;
+    const specialInstructions = document.getElementById('specialInstructions').value.trim();
+    const alertBox = document.getElementById('expressAlert');
     
-    // Clear form
-    document.getElementById('expressRegNumber').value = '';
-    document.getElementById('expressTagNumber').value = '';
-    document.getElementById('expressReason').value = '';
-    document.getElementById('expressDetails').value = '';
-    document.getElementById('expressDate').value = '';
-    document.getElementById('specialInstructions').value = '';
+    function showAlert(msg, type) {
+      alertBox.className = `alert alert-${type}`;
+      alertBox.innerHTML = msg;
+      alertBox.style.display = 'flex';
+      setTimeout(() => { alertBox.style.display = 'none'; }, 5000);
+    }
     
-    // Refresh express requests list
-    await loadExpressRequests();
-  } catch (err) {
-    showAlert(`❌ Submission failed: ${err.message}`, 'error');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '⚡ Submit Express (+₹100)';
-  }
-};
+    if (!regNumber) {
+      showAlert('❌ Please enter your registration number.', 'error');
+      return;
+    }
+    
+    if (!tagNumber) {
+      showAlert('❌ Please enter the tag number on your bag.', 'error');
+      return;
+    }
+    
+    if (isNaN(tagNumber) || tagNumber <= 0) {
+      showAlert('❌ Please enter a valid tag number.', 'error');
+      return;
+    }
+    
+    if (!reason) {
+      showAlert('❌ Please select a reason for express service.', 'error');
+      return;
+    }
+    
+    if (!details) {
+      showAlert('❌ Please explain why you need express service.', 'error');
+      return;
+    }
+    
+    if (!requestedDate) {
+      showAlert('❌ Please specify when you need the laundry ready.', 'error');
+      return;
+    }
+    
+    const btn = document.getElementById('expressSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+    
+    try {
+      const result = await submitExpressRequest(regNumber, currentUser.email, tagNumber, reason, details, requestedDate, specialInstructions);
+      showAlert(`✅ Express request submitted! Tag #${result.tagNumber}`, 'success');
+      
+      document.getElementById('expressRegNumber').value = '';
+      document.getElementById('expressTagNumber').value = '';
+      document.getElementById('expressReason').value = '';
+      document.getElementById('expressDetails').value = '';
+      document.getElementById('expressDate').value = '';
+      document.getElementById('specialInstructions').value = '';
+      
+      await loadExpressRequests();
+    } catch (err) {
+      showAlert(`❌ Submission failed: ${err.message}`, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '⚡ Submit Express (+₹100)';
+    }
+  };
 
+  // ── Load Express Requests ──
   async function loadExpressRequests() {
     if (!currentUser) return;
     const loader = document.getElementById('expressLoader');
     const content = document.getElementById('expressRequestsContent');
+    
+    // Check if elements exist before trying to modify them
+    if (!loader || !content) {
+      console.log('Express request containers not found');
+      return;
+    }
+    
     loader.style.display = 'flex';
     content.innerHTML = '';
     
