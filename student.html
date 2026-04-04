@@ -465,46 +465,79 @@
   });
 
   // ── Express Service Functions ──
-  window.submitExpressRequest = async function () {
-    const regNumber = document.getElementById('expressRegNumber').value.trim().toUpperCase();
-    const reason = document.getElementById('expressReason').value;
-    const details = document.getElementById('expressDetails').value.trim();
-    const requestedDate = document.getElementById('expressDate').value;
-    const specialInstructions = document.getElementById('specialInstructions').value.trim();
-    const alertBox = document.getElementById('expressAlert');
+  // ── Submit Express Request ──
+window.submitExpressRequest = async function () {
+  const regNumber = document.getElementById('expressRegNumber').value.trim().toUpperCase();
+  const tagNumber = document.getElementById('expressTagNumber').value.trim();
+  const reason = document.getElementById('expressReason').value;
+  const details = document.getElementById('expressDetails').value.trim();
+  const requestedDate = document.getElementById('expressDate').value;
+  const specialInstructions = document.getElementById('specialInstructions').value.trim();
+  const alertBox = document.getElementById('expressAlert');
+  
+  function showAlert(msg, type) {
+    alertBox.className = `alert alert-${type}`;
+    alertBox.innerHTML = msg;
+    alertBox.style.display = 'flex';
+    setTimeout(() => { alertBox.style.display = 'none'; }, 5000);
+  }
+  
+  // Validation
+  if (!regNumber) {
+    showAlert('❌ Please enter your registration number.', 'error');
+    return;
+  }
+  
+  if (!tagNumber) {
+    showAlert('❌ Please enter the tag number on your bag.', 'error');
+    return;
+  }
+  
+  if (isNaN(tagNumber) || tagNumber <= 0) {
+    showAlert('❌ Please enter a valid tag number.', 'error');
+    return;
+  }
+  
+  if (!reason) {
+    showAlert('❌ Please select a reason for express service.', 'error');
+    return;
+  }
+  
+  if (!details) {
+    showAlert('❌ Please explain why you need express service.', 'error');
+    return;
+  }
+  
+  if (!requestedDate) {
+    showAlert('❌ Please specify when you need the laundry ready.', 'error');
+    return;
+  }
+  
+  const btn = document.getElementById('expressSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+  
+  try {
+    const result = await submitExpressRequest(regNumber, currentUser.email, tagNumber, reason, details, requestedDate, specialInstructions);
+    showAlert(`✅ Express request submitted! Tag #${result.tagNumber}`, 'success');
     
-    function showAlert(msg, type) {
-      alertBox.className = `alert alert-${type}`;
-      alertBox.innerHTML = msg;
-      alertBox.style.display = 'flex';
-      setTimeout(() => { alertBox.style.display = 'none'; }, 5000);
-    }
+    // Clear form
+    document.getElementById('expressRegNumber').value = '';
+    document.getElementById('expressTagNumber').value = '';
+    document.getElementById('expressReason').value = '';
+    document.getElementById('expressDetails').value = '';
+    document.getElementById('expressDate').value = '';
+    document.getElementById('specialInstructions').value = '';
     
-    if (!regNumber || !reason || !details || !requestedDate) {
-      showAlert('❌ Please fill in all required fields.', 'error');
-      return;
-    }
-    
-    const btn = document.getElementById('expressSubmitBtn');
-    btn.disabled = true;
-    btn.textContent = 'Submitting...';
-    
-    try {
-      const result = await submitExpressRequest(regNumber, currentUser.email, reason, details, requestedDate, specialInstructions);
-      showAlert(`✅ Express request submitted! Tag #${result.tagNumber}`, 'success');
-      document.getElementById('expressRegNumber').value = '';
-      document.getElementById('expressReason').value = '';
-      document.getElementById('expressDetails').value = '';
-      document.getElementById('expressDate').value = '';
-      document.getElementById('specialInstructions').value = '';
-      await loadExpressRequests();
-    } catch (err) {
-      showAlert(`❌ Submission failed: ${err.message}`, 'error');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '⚡ Submit Express Request (+₹100)';
-    }
-  };
+    // Refresh express requests list
+    await loadExpressRequests();
+  } catch (err) {
+    showAlert(`❌ Submission failed: ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚡ Submit Express (+₹100)';
+  }
+};
 
   async function loadExpressRequests() {
     if (!currentUser) return;
