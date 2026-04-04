@@ -120,16 +120,7 @@
         </div>
       </div>
 
-      <!-- My Express Requests -->
-      <div class="sidebar-card">
-        <h4>⚡ My Express Requests</h4>
-        <div id="expressLoader" class="loader" style="display:flex;">
-          <div class="loader-dot"></div>
-          <div class="loader-dot"></div>
-          <div class="loader-dot"></div>
-        </div>
-        <div id="expressRequestsContent" style="max-height: 300px; overflow-y: auto;"></div>
-      </div>
+     
 
       <!-- Schedule Quick View -->
       <div class="sidebar-card">
@@ -178,7 +169,55 @@
     </main>
   </div>
 </div>
-
+ <!-- Express Service Card - COMPACT VERSION -->
+<div class="sidebar-card" style="border: 2px solid var(--amber); background: linear-gradient(135deg, var(--white) 0%, var(--cream) 100%); padding: 0.75rem;">
+  <details style="cursor: pointer;">
+    <summary style="font-weight: 700; font-size: 0.85rem; color: var(--amber); display: flex; align-items: center; gap: 8px;">
+      <span>⚡ Express Service</span>
+      <span style="font-size: 0.65rem; color: var(--gray-500);">(₹100 - Priority)</span>
+    </summary>
+    
+    <div style="margin-top: 0.75rem;">
+      <div id="expressAlert" style="margin-bottom:0.5rem;display:none; font-size:0.7rem;"></div>
+      
+      <div class="form-group" style="margin-bottom:0.5rem;">
+        <label for="expressRegNumber" style="font-size:0.7rem;">Registration Number</label>
+        <input type="text" id="expressRegNumber" placeholder="e.g. 20CS140" style="margin-top:2px; padding:6px; font-size:0.75rem;" />
+      </div>
+      
+      <div class="form-group" style="margin-bottom:0.5rem;">
+        <label for="expressReason" style="font-size:0.7rem;">Reason *</label>
+        <select id="expressReason" style="width:100%; padding:6px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.75rem;">
+          <option value="">Select...</option>
+          <option value="exam">📝 Exam</option>
+          <option value="interview">💼 Interview</option>
+          <option value="medical">🏥 Medical</option>
+          <option value="travel">✈️ Travel</option>
+          <option value="other">📌 Other</option>
+        </select>
+      </div>
+      
+      <div class="form-group" style="margin-bottom:0.5rem;">
+        <label for="expressDetails" style="font-size:0.7rem;">Details *</label>
+        <textarea id="expressDetails" rows="2" placeholder="Why need express?" style="width:100%; padding:6px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.75rem;"></textarea>
+      </div>
+      
+      <div class="form-group" style="margin-bottom:0.5rem;">
+        <label for="expressDate" style="font-size:0.7rem;">Need by *</label>
+        <input type="datetime-local" id="expressDate" style="width:100%; padding:6px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.75rem;" />
+      </div>
+      
+      <div class="form-group" style="margin-bottom:0.5rem;">
+        <label for="specialInstructions" style="font-size:0.7rem;">Special Instructions</label>
+        <textarea id="specialInstructions" rows="1" placeholder="Optional" style="width:100%; padding:6px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.75rem;"></textarea>
+      </div>
+      
+      <button class="btn btn-primary" id="expressSubmitBtn" onclick="submitExpressRequest()" style="width:100%; padding:6px; font-size:0.75rem; background:var(--amber); color:var(--navy);">
+        ⚡ Submit (+₹100)
+      </button>
+    </div>
+  </details>
+</div>
 <!-- Chatbot Section -->
 <div class="main-wrapper" style="padding-top: 0; padding-bottom: 2rem;">
   <div class="card chat-container">
