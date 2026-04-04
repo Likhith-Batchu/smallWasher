@@ -405,6 +405,21 @@ window.bulkAssignShelf = async function () {
   document.querySelector('.card-header h3').textContent =
     translations[lang].assignRoom;
 };
+  <!-- Express Requests Management -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-header">
+    <h3>⚡ Express Service Requests</h3>
+    <span style="font-size:0.75rem; color:var(--amber);">Pending: <span id="pendingCount">0</span></span>
+  </div>
+  <div class="card-body">
+    <div id="expressRequestsLoader" class="loader">
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+    </div>
+    <div id="expressRequestsList"></div>
+  </div>
+</div>
 </script>
 
 </body>
