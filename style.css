@@ -1834,3 +1834,28 @@ textarea {
     font-size: 1.2rem;
   }
 }
+/* Express Service Collapsible Styles */
+details summary {
+  list-style: none;
+  transition: all var(--transition);
+}
+
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+details summary::before {
+  content: '▶';
+  display: inline-block;
+  width: 16px;
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+
+details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+details summary:hover {
+  opacity: 0.8;
+}
