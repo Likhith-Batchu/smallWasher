@@ -1732,3 +1732,105 @@ textarea {
 <li>
   <span style="color:white; font-size:0.8rem;">🌐</span>
   <select id="langToggle" onchange="changeLanguage(this.value)">
+/* ============================================================
+   Modal Styles for Express Service
+   ============================================================ */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 31, 61, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.3s ease-out;
+}
+
+.modal-content h3 {
+  margin-bottom: 1rem;
+  color: var(--navy);
+}
+
+.modal-content p {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  background: var(--gray-100);
+  transition: all var(--transition);
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: var(--blue);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(34, 83, 168, 0.1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Express Request Cards */
+.express-card {
+  transition: all var(--transition);
+}
+
+.express-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Express badge in student view */
+.express-badge {
+  background: var(--amber);
+  color: var(--navy);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-left: 0.5rem;
+}
+
+/* Responsive modal */
+@media (max-width: 640px) {
+  .modal-content {
+    padding: 1.5rem;
+    width: 95%;
+  }
+  
+  .modal-content h3 {
+    font-size: 1.2rem;
+  }
+}
