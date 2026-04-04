@@ -233,4 +233,134 @@ async function getRoomNumber(registrationNumber) {
     return docSnap.data().roomNumber;
   }
   return null;
+
+  // ============================================================
+// EXPRESS SERVICE FUNCTIONS
+// ============================================================
+
+/**
+ * submitExpressRequest() - Student submits express laundry request
+ */
+async function submitExpressRequest(registrationNumber, userEmail, reason, specialInstructions, requestedDate) {
+  const tagNumber = await getNextTagNumber();
+  
+  const docRef = await addDoc(collection(db, "expressRequests"), {
+    registrationNumber: registrationNumber,
+    userEmail: userEmail,
+    tagNumber: tagNumber,
+    reason: reason,
+    specialInstructions: specialInstructions || "",
+    requestedDate: requestedDate || null,
+    status: "pending", // pending, approved, processing, completed, rejected
+    approvedBy: null,
+    approvedAt: null,
+    scheduledPickupTime: null,
+    scheduledDeliveryTime: null,
+    expressFee: 100, // ₹100 for express service
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  });
+  
+  return { id: docRef.id, tagNumber };
 }
+
+/**
+ * getAllExpressRequests() - Get all express requests for admin/worker
+ */
+function getAllExpressRequests(callback) {
+  const q = query(collection(db, "expressRequests"), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snapshot) => {
+    const requests = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    callback(requests);
+  });
+}
+
+/**
+ * getStudentExpressRequests() - Get express requests for a specific student
+ */
+async function getStudentExpressRequests(userEmail) {
+  const q = query(
+    collection(db, "expressRequests"),
+    where("userEmail", "==", userEmail),
+    orderBy("createdAt", "desc")
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+/**
+ * approveExpressRequest() - Admin approves express request with pickup time
+ */
+async function approveExpressRequest(requestId, scheduledPickupTime, scheduledDeliveryTime, adminEmail) {
+  const requestRef = doc(db, "expressRequests", requestId);
+  await updateDoc(requestRef, {
+    status: "approved",
+    approvedBy: adminEmail,
+    approvedAt: serverTimestamp(),
+    scheduledPickupTime: scheduledPickupTime,
+    scheduledDeliveryTime: scheduledDeliveryTime,
+    updatedAt: serverTimestamp()
+  });
+}
+
+/**
+ * rejectExpressRequest() - Admin rejects express request
+ */
+async function rejectExpressRequest(requestId, rejectionReason, adminEmail) {
+  const requestRef = doc(db, "expressRequests", requestId);
+  await updateDoc(requestRef, {
+    status: "rejected",
+    approvedBy: adminEmail,
+    approvedAt: serverTimestamp(),
+    rejectionReason: rejectionReason,
+    updatedAt: serverTimestamp()
+  });
+}
+
+/**
+ * updateExpressStatus() - Update processing status of express request
+ */
+async function updateExpressStatus(requestId, status, shelfNumber = null) {
+  const requestRef = doc(db, "expressRequests", requestId);
+  const updateData = { 
+    status: status,
+    updatedAt: serverTimestamp()
+  };
+  if (shelfNumber) {
+    updateData.shelfNumber = shelfNumber;
+  }
+  await updateDoc(requestRef, updateData);
+}
+
+export {
+  // Auth
+  auth,
+  db,
+  signup,
+  login,
+  logout,
+  checkUserRole,
+  onAuthStateChanged,
+  
+  // Laundry
+  addLaundry,
+  getLaundryByUser,
+  getAllLaundry,
+  updateStatus,
+  assignShelfNumber,
+  getNextTagNumber,
+  
+  // Schedule & Rooms
+  isSubmissionAllowed,
+  addStudentRoom,
+  getRoomNumber,
+  
+  // Express Service
+  submitExpressRequest,
+  getAllExpressRequests,
+  getStudentExpressRequests,
+  approveExpressRequest,
+  rejectExpressRequest,
+  updateExpressStatus
+};
+
