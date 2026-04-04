@@ -1686,3 +1686,30 @@ textarea {
     transform: translateY(0);
   }
 }
+/* Chat message formatting */
+.chat-bubble {
+  white-space: pre-line;
+}
+
+.chat-suggestions {
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+/* Quick reply buttons */
+.quick-reply {
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.quick-reply:hover {
+  background: var(--navy);
+  color: white;
+  transform: translateY(-2px);
+}
