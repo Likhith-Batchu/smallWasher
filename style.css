@@ -1703,3 +1703,31 @@ textarea {
 .chat-message {
   animation: slideInChat 0.3s ease-out;
 }
+/* 🌐 Language Dropdown Styling */
+#langToggle {
+  background: white;
+  color: #1f2937;
+  border: 1px solid rgba(0,0,0,0.1);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+/* Hover effect */
+#langToggle:hover {
+  border-color: var(--amber, #f59e0b);
+}
+
+/* Focus effect */
+#langToggle:focus {
+  border-color: var(--navy, #1e3a8a);
+  box-shadow: 0 0 0 2px rgba(30,58,138,0.2);
+}
+
+/* Match navbar alignment */
+.navbar-links select {
+  margin-left: 10px;
+}
