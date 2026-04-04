@@ -331,6 +331,231 @@ async function updateExpressStatus(requestId, status, shelfNumber = null) {
   }
   await updateDoc(requestRef, updateData);
 }
+  import { 
+  getAllExpressRequests, approveExpressRequest, rejectExpressRequest, updateExpressStatus 
+} from './firebase.js';
+
+let expressRequests = [];
+let expressUnsubscribe = null;
+
+// Start listening to express requests
+function startExpressRequestsListener() {
+  if (expressUnsubscribe) expressUnsubscribe();
+  
+  expressUnsubscribe = getAllExpressRequests((requests) => {
+    expressRequests = requests;
+    renderExpressRequests(requests);
+    
+    // Update pending count
+    const pendingCount = requests.filter(r => r.status === 'pending').length;
+    document.getElementById('pendingCount').textContent = pendingCount;
+  });
+}
+
+function renderExpressRequests(requests) {
+  const container = document.getElementById('expressRequestsList');
+  const loader = document.getElementById('expressRequestsLoader');
+  
+  if (loader) loader.style.display = 'none';
+  
+  if (requests.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">⚡</div>
+        <h3>No express requests</h3>
+        <p>Students will request express service here when needed.</p>
+      </div>`;
+    return;
+  }
+  
+  container.innerHTML = requests.map(req => renderExpressRequestCard(req)).join('');
+  
+  // Attach event listeners for each request
+  requests.forEach(req => {
+    const approveBtn = document.getElementById(`approve-${req.id}`);
+    const rejectBtn = document.getElementById(`reject-${req.id}`);
+    const updateStatusBtn = document.getElementById(`update-status-${req.id}`);
+    
+    if (approveBtn) {
+      approveBtn.onclick = () => showApproveModal(req);
+    }
+    if (rejectBtn) {
+      rejectBtn.onclick = () => showRejectModal(req);
+    }
+    if (updateStatusBtn) {
+      updateStatusBtn.onclick = () => updateExpressRequestStatus(req);
+    }
+  });
+}
+
+function renderExpressRequestCard(req) {
+  const statusColors = {
+    'pending': 'var(--orange)',
+    'approved': 'var(--blue)',
+    'processing': 'var(--amber)',
+    'completed': 'var(--green)',
+    'rejected': 'var(--red)'
+  };
+  
+  const requestDate = req.createdAt?.toDate?.() 
+    ? req.createdAt.toDate().toLocaleString('en-IN')
+    : '—';
+  
+  return `
+    <div class="express-card" style="border:1px solid var(--gray-200); border-radius:var(--radius); padding:1rem; margin-bottom:1rem; background:var(--white);">
+      <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
+        <div>
+          <span style="font-weight:800; font-size:1.1rem;">Tag #${req.tagNumber}</span>
+          <span style="background:${statusColors[req.status]}; color:white; padding:2px 8px; border-radius:12px; font-size:0.7rem; margin-left:0.5rem;">
+            ${req.status.toUpperCase()}
+          </span>
+        </div>
+        <div style="font-size:0.75rem; color:var(--gray-400);">${requestDate}</div>
+      </div>
+      
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:0.5rem; margin-bottom:0.75rem;">
+        <div><strong>Student:</strong> ${req.userEmail}</div>
+        <div><strong>Reg Number:</strong> ${req.registrationNumber}</div>
+        <div><strong>Reason:</strong> ${req.reason}</div>
+      </div>
+      
+      <div style="background:var(--gray-100); padding:0.75rem; border-radius:var(--radius); margin-bottom:0.75rem;">
+        <strong>📝 Request Details:</strong>
+        <p style="margin-top:0.25rem; font-size:0.85rem;">${req.specialInstructions || req.details || 'No additional details'}</p>
+        ${req.requestedDate ? `<p style="margin-top:0.25rem; font-size:0.8rem;"><strong>Needed by:</strong> ${new Date(req.requestedDate).toLocaleString('en-IN')}</p>` : ''}
+      </div>
+      
+      ${req.status === 'pending' ? `
+        <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+          <button class="btn btn-green btn-sm" id="approve-${req.id}">✅ Approve</button>
+          <button class="btn btn-orange btn-sm" id="reject-${req.id}">❌ Reject</button>
+        </div>
+      ` : ''}
+      
+      ${req.status === 'approved' ? `
+        <div style="margin-top:0.5rem;">
+          <button class="btn btn-primary btn-sm" id="update-status-${req.id}">⚙️ Start Processing</button>
+        </div>
+      ` : ''}
+      
+      ${req.status === 'processing' ? `
+        <div style="margin-top:0.5rem;">
+          <button class="btn btn-green btn-sm" id="update-status-${req.id}">✅ Mark Completed</button>
+        </div>
+      ` : ''}
+      
+      ${(req.status === 'approved' || req.status === 'processing' || req.status === 'completed') && req.scheduledPickupTime ? `
+        <div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid var(--gray-200); font-size:0.8rem;">
+          <div><strong>📅 Scheduled Pickup:</strong> ${new Date(req.scheduledPickupTime).toLocaleString('en-IN')}</div>
+          <div><strong>🎯 Scheduled Delivery:</strong> ${new Date(req.scheduledDeliveryTime).toLocaleString('en-IN')}</div>
+        </div>
+      ` : ''}
+      
+      ${req.status === 'completed' && req.shelfNumber ? `
+        <div style="margin-top:0.5rem; background:var(--green-lt); padding:0.5rem; border-radius:var(--radius);">
+          📦 Ready for pickup at <strong>Shelf #${req.shelfNumber}</strong>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+// Modals for approve/reject
+function showApproveModal(req) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <h3>✅ Approve Express Request</h3>
+      <p>Request from: <strong>${req.userEmail}</strong></p>
+      <p>Reason: ${req.reason}</p>
+      
+      <div class="form-group">
+        <label>Pickup Date & Time *</label>
+        <input type="datetime-local" id="pickupTime" class="modal-input" />
+      </div>
+      
+      <div class="form-group">
+        <label>Expected Delivery Time *</label>
+        <input type="datetime-local" id="deliveryTime" class="modal-input" />
+      </div>
+      
+      <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+        <button class="btn btn-green" id="confirmApprove">Confirm Approval</button>
+        <button class="btn btn-outline" id="closeModal">Cancel</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  document.getElementById('confirmApprove').onclick = async () => {
+    const pickupTime = document.getElementById('pickupTime').value;
+    const deliveryTime = document.getElementById('deliveryTime').value;
+    
+    if (!pickupTime || !deliveryTime) {
+      alert('Please fill in both pickup and delivery times');
+      return;
+    }
+    
+    await approveExpressRequest(req.id, pickupTime, deliveryTime, auth.currentUser.email);
+    modal.remove();
+  };
+  
+  document.getElementById('closeModal').onclick = () => modal.remove();
+}
+
+function showRejectModal(req) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <h3>❌ Reject Express Request</h3>
+      <p>Request from: <strong>${req.userEmail}</strong></p>
+      
+      <div class="form-group">
+        <label>Rejection Reason *</label>
+        <textarea id="rejectReason" rows="3" placeholder="Why is this request being rejected?" class="modal-input"></textarea>
+      </div>
+      
+      <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+        <button class="btn btn-orange" id="confirmReject">Confirm Rejection</button>
+        <button class="btn btn-outline" id="closeModal">Cancel</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  document.getElementById('confirmReject').onclick = async () => {
+    const reason = document.getElementById('rejectReason').value;
+    if (!reason) {
+      alert('Please provide a rejection reason');
+      return;
+    }
+    await rejectExpressRequest(req.id, reason, auth.currentUser.email);
+    modal.remove();
+  };
+  
+  document.getElementById('closeModal').onclick = () => modal.remove();
+}
+
+async function updateExpressRequestStatus(req) {
+  let newStatus;
+  if (req.status === 'approved') newStatus = 'processing';
+  else if (req.status === 'processing') newStatus = 'completed';
+  else return;
+  
+  let shelfNumber = null;
+  if (newStatus === 'completed') {
+    shelfNumber = prompt('Enter shelf number for pickup:', '1-5');
+    if (!shelfNumber) return;
+  }
+  
+  await updateExpressStatus(req.id, newStatus, shelfNumber);
+}
+
+// Call startExpressRequestsListener() in onAuthStateChanged after user auth
 
 export {
   // Auth
@@ -363,4 +588,5 @@ export {
   rejectExpressRequest,
   updateExpressStatus
 };
+  
 
