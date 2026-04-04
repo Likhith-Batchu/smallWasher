@@ -101,35 +101,17 @@ async function checkUserRole(uid) {
 // LAUNDRY FUNCTIONS
 // ============================================================
 
-/**
- * getNextTagNumber() — Auto-increments tag number safely using Firestore transaction
- * Uses a "meta/tagCounter" document to keep track of the last tag number
- */
-async function getNextTagNumber() {
-  const counterRef = doc(db, "meta", "tagCounter");
-  let newTag = 1;
-  await runTransaction(db, async (transaction) => {
-    const counterDoc = await transaction.get(counterRef);
-    if (!counterDoc.exists()) {
-      transaction.set(counterRef, { count: 1 });
-      newTag = 1;
-    } else {
-      newTag = counterDoc.data().count + 1;
-      transaction.update(counterRef, { count: newTag });
-    }
-  });
-  return newTag;
-}
+
 
 /**
  * addLaundry() — Submits a new laundry entry for a student
  */
-async function addLaundry(registrationNumber, userEmail) {
-  const tagNumber = await getNextTagNumber();
+async function addLaundry(registrationNumber, userEmail, tagNumber) {
+  
   const docRef = await addDoc(collection(db, "laundry"), {
     registrationNumber: registrationNumber,
     userEmail: userEmail,
-    tagNumber: tagNumber,
+    tagNumber: parseInt(tagNumber),
     status: "Submitted",
     shelfNumber: "",
     timestamp: serverTimestamp()
