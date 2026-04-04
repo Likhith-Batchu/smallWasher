@@ -65,7 +65,7 @@
         </div>
       </div>
 
-      <!-- 3. MY EXPRESS REQUESTS - DISPLAY STUDENT'S REQUESTS -->
+      <!-- 3. MY EXPRESS REQUESTS - WITH FULL STATUS DISPLAY -->
       <div class="sidebar-card">
         <h4>⚡ My Express Requests</h4>
         <div id="expressLoader" class="loader" style="display:flex;">
@@ -73,7 +73,7 @@
           <div class="loader-dot"></div>
           <div class="loader-dot"></div>
         </div>
-        <div id="expressRequestsContent" style="max-height: 250px; overflow-y: auto;"></div>
+        <div id="expressRequestsContent" style="max-height: 350px; overflow-y: auto;"></div>
       </div>
 
       <!-- 4. Schedule Quick View -->
@@ -94,19 +94,16 @@
           <div style="margin-top: 0.75rem;">
             <div id="expressAlert" style="margin-bottom:0.5rem;display:none; font-size:0.7rem;"></div>
             
-            <!-- Registration Number -->
             <div class="form-group" style="margin-bottom:0.5rem;">
               <label for="expressRegNumber" style="font-size:0.7rem;">Registration Number *</label>
               <input type="text" id="expressRegNumber" placeholder="e.g. 20CS140" style="margin-top:2px; padding:6px; font-size:0.75rem;" />
             </div>
             
-            <!-- Tag Number -->
             <div class="form-group" style="margin-bottom:0.5rem;">
               <label for="expressTagNumber" style="font-size:0.7rem;">Tag Number on Your Bag *</label>
               <input type="number" id="expressTagNumber" placeholder="Enter tag number" style="margin-top:2px; padding:6px; font-size:0.75rem;" />
             </div>
             
-            <!-- Reason -->
             <div class="form-group" style="margin-bottom:0.5rem;">
               <label for="expressReason" style="font-size:0.7rem;">Reason *</label>
               <select id="expressReason" style="width:100%; padding:6px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.75rem;">
@@ -119,19 +116,16 @@
               </select>
             </div>
             
-            <!-- Details -->
             <div class="form-group" style="margin-bottom:0.5rem;">
               <label for="expressDetails" style="font-size:0.7rem;">Details *</label>
               <textarea id="expressDetails" rows="2" placeholder="Why need express?" style="width:100%; padding:6px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.75rem;"></textarea>
             </div>
             
-            <!-- Need by Date -->
             <div class="form-group" style="margin-bottom:0.5rem;">
               <label for="expressDate" style="font-size:0.7rem;">Need by *</label>
               <input type="datetime-local" id="expressDate" style="width:100%; padding:6px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.75rem;" />
             </div>
             
-            <!-- Special Instructions -->
             <div class="form-group" style="margin-bottom:0.5rem;">
               <label for="specialInstructions" style="font-size:0.7rem;">Special Instructions</label>
               <textarea id="specialInstructions" rows="1" placeholder="Optional" style="width:100%; padding:6px; border-radius:var(--radius); border:1.5px solid var(--gray-200); font-size:0.75rem;"></textarea>
@@ -193,30 +187,16 @@
       <span style="font-size: 0.7rem; color: var(--gray-400);">Ask me anything about laundry</span>
     </div>
     <div class="card-body">
-      
-      <!-- Chat messages container -->
       <div id="chatBox" class="chat-box">
         <div class="chat-empty">
           <div class="chat-empty-icon">💬</div>
           <div class="chat-empty-text">Ask me about your laundry status, shelf numbers, or schedule!</div>
         </div>
       </div>
-      
-      <!-- Chat input area -->
       <div class="chat-input-container">
-        <input 
-          type="text" 
-          id="userInput" 
-          class="chat-input" 
-          placeholder="Type your question here..."
-          onkeypress="if(event.key === 'Enter') sendMessage()"
-        />
-        <button class="chat-send-btn" onclick="sendMessage()">
-          <span>📤</span> Send
-        </button>
+        <input type="text" id="userInput" class="chat-input" placeholder="Type your question here..." onkeypress="if(event.key === 'Enter') sendMessage()" />
+        <button class="chat-send-btn" onclick="sendMessage()"><span>📤</span> Send</button>
       </div>
-      
-      <!-- Suggested questions -->
       <div class="chat-suggestions">
         <div class="chat-suggestion-chip" onclick="sendSuggested('What is my laundry status?')">📋 Status</div>
         <div class="chat-suggestion-chip" onclick="sendSuggested('Where will my laundry be?')">📦 Shelf</div>
@@ -224,7 +204,6 @@
         <div class="chat-suggestion-chip" onclick="sendSuggested('I lost something')">🔍 Lost & Found</div>
         <div class="chat-suggestion-chip" onclick="sendSuggested('What is today\'s schedule?')">📅 Schedule</div>
       </div>
-      
     </div>
   </div>
 </div>
@@ -490,13 +469,12 @@
     }
   };
 
-  // ── Load Express Requests ──
+  // ── Load Express Requests with FULL STATUS DISPLAY ──
   async function loadExpressRequests() {
     if (!currentUser) return;
     const loader = document.getElementById('expressLoader');
     const content = document.getElementById('expressRequestsContent');
     
-    // Check if elements exist before trying to modify them
     if (!loader || !content) {
       console.log('Express request containers not found');
       return;
@@ -520,27 +498,142 @@
     }
   }
 
+  // ── Render Express Request with FULL STATUS and DETAILS ──
   function renderExpressRequest(request) {
+    // Status configuration with colors and icons
     const statusConfig = {
-      'pending': { class: 'badge-processing', text: '⏳ Pending' },
-      'approved': { class: 'badge-processing', text: '✅ Approved' },
-      'processing': { class: 'badge-processing', text: '⚙️ Processing' },
-      'completed': { class: 'badge-completed', text: '🎉 Completed' },
-      'rejected': { class: 'badge-submitted', text: '❌ Rejected' }
+      'pending': { 
+        class: 'badge-processing', 
+        text: '⏳ Pending Approval', 
+        color: '#ea580c',
+        icon: '🕐',
+        message: 'Your request is waiting for admin approval.'
+      },
+      'approved': { 
+        class: 'badge-processing', 
+        text: '✅ Approved', 
+        color: '#2253a8',
+        icon: '✓',
+        message: 'Your request has been approved!'
+      },
+      'processing': { 
+        class: 'badge-processing', 
+        text: '⚙️ Processing', 
+        color: '#f5a623',
+        icon: '⚙️',
+        message: 'Your express laundry is being processed.'
+      },
+      'completed': { 
+        class: 'badge-completed', 
+        text: '🎉 Completed', 
+        color: '#16a34a',
+        icon: '✅',
+        message: 'Your express laundry is ready for pickup!'
+      },
+      'rejected': { 
+        class: 'badge-submitted', 
+        text: '❌ Rejected', 
+        color: '#dc2626',
+        icon: '❌',
+        message: 'Your request was rejected.'
+      }
     };
+    
     const status = statusConfig[request.status] || statusConfig.pending;
-    const requestDate = request.createdAt?.toDate?.() ? request.createdAt.toDate().toLocaleDateString('en-IN') : '—';
+    const requestDate = request.createdAt?.toDate?.() 
+      ? request.createdAt.toDate().toLocaleString('en-IN')
+      : new Date().toLocaleString();
+    
+    // Format scheduled times if available
+    const scheduledPickup = request.scheduledPickupTime 
+      ? new Date(request.scheduledPickupTime).toLocaleString('en-IN')
+      : null;
+      
+    const scheduledDelivery = request.scheduledDeliveryTime
+      ? new Date(request.scheduledDeliveryTime).toLocaleString('en-IN')
+      : null;
+    
+    // Get reason display name
+    const reasonNames = {
+      'exam': '📝 Upcoming Exam',
+      'interview': '💼 Job Interview',
+      'medical': '🏥 Medical Emergency',
+      'travel': '✈️ Travel/Urgent Trip',
+      'other': '📌 Other Reason'
+    };
+    const reasonDisplay = reasonNames[request.reason] || request.reason;
     
     return `
-      <div style="border-bottom:1px solid var(--gray-200); padding:0.75rem 0;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-          <span style="font-weight:600; font-size:0.85rem;">Tag #${request.tagNumber}</span>
-          <span class="${status.class}" style="font-size:0.7rem;">${status.text}</span>
+      <div class="express-request-item" style="border:1px solid var(--gray-200); border-radius:var(--radius); padding:0.75rem; margin-bottom:0.75rem; background:var(--white);">
+        <!-- Header with Tag and Status -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span style="font-weight:700; font-size:0.9rem; background:var(--navy); color:white; padding:2px 8px; border-radius:12px;">Tag #${request.tagNumber}</span>
+            <span class="${status.class}" style="font-size:0.7rem; padding:4px 10px;">${status.text}</span>
+          </div>
+          <div style="font-size:0.7rem; color:var(--gray-400);">📅 ${requestDate}</div>
         </div>
-        <div style="font-size:0.75rem; color:var(--gray-600);"><strong>Reason:</strong> ${request.reason}</div>
-        <div style="font-size:0.7rem; color:var(--gray-400);">📅 ${requestDate}</div>
+        
+        <!-- Request Details -->
+        <div style="margin-bottom:0.5rem;">
+          <div style="font-size:0.75rem; color:var(--gray-600); margin-bottom:0.25rem;">
+            <strong>Reason:</strong> ${reasonDisplay}
+          </div>
+          <div style="font-size:0.7rem; color:var(--gray-500); background:var(--gray-100); padding:0.5rem; border-radius:var(--radius); margin-top:0.25rem;">
+            <strong>📝 Details:</strong> ${escapeHtml(request.details || 'No details provided')}
+          </div>
+          ${request.specialInstructions ? `
+            <div style="font-size:0.7rem; color:var(--gray-500); margin-top:0.25rem;">
+              <strong>📌 Special Instructions:</strong> ${escapeHtml(request.specialInstructions)}
+            </div>
+          ` : ''}
+        </div>
+        
+        <!-- Status Message -->
+        <div style="font-size:0.7rem; padding:0.5rem; border-radius:var(--radius); margin-top:0.5rem; background:${status.color}10; border-left:3px solid ${status.color};">
+          <span style="font-weight:500;">${status.icon} Status Update:</span> ${status.message}
+        </div>
+        
+        <!-- Scheduled Times (if approved) -->
+        ${(request.status === 'approved' || request.status === 'processing' || request.status === 'completed') && scheduledPickup ? `
+          <div style="margin-top:0.5rem; padding-top:0.5rem; border-top:1px solid var(--gray-200); font-size:0.7rem;">
+            <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+              <div><strong>📦 Pickup:</strong> ${scheduledPickup}</div>
+              <div><strong>🎯 Delivery:</strong> ${scheduledDelivery || 'To be confirmed'}</div>
+            </div>
+          </div>
+        ` : ''}
+        
+        <!-- Shelf Number (if completed) -->
+        ${request.status === 'completed' && request.shelfNumber ? `
+          <div style="margin-top:0.5rem; background:var(--green-lt); padding:0.5rem; border-radius:var(--radius); font-size:0.75rem; font-weight:600; color:var(--green);">
+            📦 Ready for pickup at <strong>Shelf #${request.shelfNumber}</strong>
+          </div>
+        ` : ''}
+        
+        <!-- Rejection Reason (if rejected) -->
+        ${request.status === 'rejected' && request.rejectionReason ? `
+          <div style="margin-top:0.5rem; background:var(--red-lt); padding:0.5rem; border-radius:var(--radius); font-size:0.7rem;">
+            <strong>❌ Rejection Reason:</strong> ${escapeHtml(request.rejectionReason)}
+          </div>
+        ` : ''}
+        
+        <!-- Fee Information -->
+        <div style="margin-top:0.5rem; font-size:0.65rem; color:var(--gray-400); text-align:right;">
+          💰 Express Fee: ₹${request.expressFee || 100}
+        </div>
       </div>
     `;
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   // ── Chatbot Functions ──
