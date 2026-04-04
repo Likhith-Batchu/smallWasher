@@ -114,51 +114,56 @@
   </div>
 </div>
 <!-- Chatbot Section -->
-<div class="card chat-container" style="margin-top: 1.5rem;">
-  <div class="card-header">
-    <h3>🤖 Laundry Assistant</h3>
-    <span style="font-size: 0.7rem; color: var(--gray-400);">Ask me anything about laundry</span>
-  </div>
-  <div class="card-body">
-    
-    <!-- Chat messages container -->
-    <div id="chatBox" class="chat-box">
-      <div class="chat-empty">
-        <div class="chat-empty-icon">💬</div>
-        <div class="chat-empty-text">Ask me about your laundry status, shelf numbers, or schedule!</div>
-      </div>
+<div class="main-wrapper" style="padding-top: 0; padding-bottom: 2rem;">
+  <div class="card chat-container">
+    <div class="card-header">
+      <h3>🤖 Laundry Assistant</h3>
+      <span style="font-size: 0.7rem; color: var(--gray-400);">Ask me anything about laundry</span>
     </div>
-    
-    <!-- Chat input area -->
-    <div class="chat-input-container">
-      <input 
-        type="text" 
-        id="userInput" 
-        class="chat-input" 
-        placeholder="Type your question here... e.g., 'What's my laundry status?'"
-        onkeypress="if(event.key === 'Enter') sendMessage()"
-      />
-      <button class="chat-send-btn" onclick="sendMessage()">
-        <span>📤</span> Send
-      </button>
+    <div class="card-body">
+      
+      <!-- Chat messages container -->
+      <div id="chatBox" class="chat-box">
+        <div class="chat-empty">
+          <div class="chat-empty-icon">💬</div>
+          <div class="chat-empty-text">Ask me about your laundry status, shelf numbers, or schedule!</div>
+        </div>
+      </div>
+      
+      <!-- Chat input area -->
+      <div class="chat-input-container">
+        <input 
+          type="text" 
+          id="userInput" 
+          class="chat-input" 
+          placeholder="Type your question here... e.g., 'What's my laundry status?'"
+          onkeypress="if(event.key === 'Enter') sendMessage()"
+        />
+        <button class="chat-send-btn" onclick="sendMessage()">
+          <span>📤</span> Send
+        </button>
+      </div>
+      
+      <!-- Suggested questions -->
+      <div class="chat-suggestions">
+        <div class="chat-suggestion-chip" onclick="sendSuggested('What is my laundry status?')">
+          📋 Status
+        </div>
+        <div class="chat-suggestion-chip" onclick="sendSuggested('Where will my laundry be?')">
+          📦 Shelf
+        </div>
+        <div class="chat-suggestion-chip" onclick="sendSuggested('How long does it take?')">
+          ⏰ Time
+        </div>
+        <div class="chat-suggestion-chip" onclick="sendSuggested('I lost something')">
+          🔍 Lost & Found
+        </div>
+        <div class="chat-suggestion-chip" onclick="sendSuggested('What is today\'s schedule?')">
+          📅 Schedule
+        </div>
+      </div>
+      
     </div>
-    
-    <!-- Suggested questions -->
-    <div class="chat-suggestions">
-      <div class="chat-suggestion-chip" onclick="sendSuggested('What is my laundry status?')">
-        📋 Status
-      </div>
-      <div class="chat-suggestion-chip" onclick="sendSuggested('Where will my laundry be?')">
-        📦 Shelf
-      </div>
-      <div class="chat-suggestion-chip" onclick="sendSuggested('How long does it take?')">
-        ⏰ Time
-      </div>
-      <div class="chat-suggestion-chip" onclick="sendSuggested('I lost something')">
-        🔍 Lost & Found
-      </div>
-    </div>
-    
   </div>
 </div>
 <!-- ── Footer ── -->
