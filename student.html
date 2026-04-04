@@ -65,7 +65,7 @@
         </div>
       </div>
 
-      <!-- 3. MY EXPRESS REQUESTS - WITH FULL STATUS DISPLAY -->
+      <!-- 3. MY EXPRESS REQUESTS -->
       <div class="sidebar-card">
         <h4>⚡ My Express Requests</h4>
         <div id="expressLoader" class="loader" style="display:flex;">
@@ -83,7 +83,7 @@
         <a href="schedule.html" style="font-size:0.8rem;margin-top:0.75rem;display:inline-block;">View full schedule →</a>
       </div>
 
-      <!-- 5. Express Service Card (COMPACT & COLLAPSIBLE - BOTTOM) -->
+      <!-- 5. Express Service Card -->
       <div class="sidebar-card" style="border: 2px solid var(--amber); background: linear-gradient(135deg, var(--white) 0%, var(--cream) 100%); padding: 0.75rem;">
         <details style="cursor: pointer;">
           <summary style="font-weight: 700; font-size: 0.85rem; color: var(--amber); display: flex; align-items: center; gap: 8px;">
@@ -222,7 +222,7 @@
 
   let currentUser = null;
 
-  // ── Auth Guard: only students allowed ──
+  // Auth Guard
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       window.location.href = 'login.html'; 
@@ -241,14 +241,14 @@
     loadExpressRequests();
   });
 
-  // ── Logout ──
+  // Logout
   document.getElementById('logoutBtn').addEventListener('click', async (e) => {
     e.preventDefault();
     await logout();
     window.location.href = 'index.html';
   });
 
-  // ── Show today's schedule in sidebar ──
+  // Show today's schedule
   function showTodaySchedule() {
     const schedule = {
       1: 'Monday → Rooms 101–140',
@@ -261,28 +261,30 @@
     };
     const today = new Date().getDay();
     const el = document.getElementById('todaySchedule');
-    el.innerHTML = `<span class="badge badge-processing" style="margin-bottom:4px;">Today</span><br>${schedule[today] || 'Check schedule page'}`;
+    if (el) {
+      el.innerHTML = `<span class="badge badge-processing" style="margin-bottom:4px;">Today</span><br>${schedule[today] || 'Check schedule page'}`;
+    }
   }
 
-  // ── Load and render laundry entries ──
+  // Load and render laundry entries
   window.loadEntries = async function () {
     if (!currentUser) return;
     const loader = document.getElementById('entriesLoader');
     const list = document.getElementById('entriesList');
-    loader.style.display = 'flex';
-    list.style.display = 'none';
+    if (loader) loader.style.display = 'flex';
+    if (list) list.style.display = 'none';
 
     try {
       const entries = await getLaundryByUser(currentUser.email);
-      loader.style.display = 'none';
-      list.style.display = 'flex';
+      if (loader) loader.style.display = 'none';
+      if (list) list.style.display = 'flex';
 
       document.getElementById('statTotal').textContent = entries.length;
       document.getElementById('statProcessing').textContent = entries.filter(e => e.status === 'Processing').length;
       document.getElementById('statCompleted').textContent = entries.filter(e => e.status === 'Completed').length;
 
       if (entries.length === 0) {
-        list.innerHTML = `<div class="empty-state"><div class="empty-icon">🧺</div><h3>No laundry submitted yet</h3><p>Submit your laundry bag on your scheduled day using the form on the left.</p></div>`;
+        if (list) list.innerHTML = `<div class="empty-state"><div class="empty-icon">🧺</div><h3>No laundry submitted yet</h3><p>Submit your laundry bag on your scheduled day using the form on the left.</p></div>`;
         return;
       }
 
@@ -292,11 +294,13 @@
         return tb - ta;
       });
 
-      list.innerHTML = entries.map(entry => renderEntry(entry)).join('');
+      if (list) list.innerHTML = entries.map(entry => renderEntry(entry)).join('');
     } catch (err) {
-      loader.style.display = 'none';
-      list.style.display = 'flex';
-      list.innerHTML = `<div class="alert alert-error">❌ Failed to load entries. ${err.message}</div>`;
+      if (loader) loader.style.display = 'none';
+      if (list) {
+        list.style.display = 'flex';
+        list.innerHTML = `<div class="alert alert-error">❌ Failed to load entries. ${err.message}</div>`;
+      }
     }
   };
 
@@ -333,18 +337,20 @@
     `;
   }
 
-  // ── Submit Laundry ──
+  // Submit Laundry
   window.submitLaundry = async function () {
-    const regNumber = document.getElementById('regNumber').value.trim().toUpperCase();
-    const tagNumber = document.getElementById('tagNumber').value.trim();
+    const regNumber = document.getElementById('regNumber')?.value.trim().toUpperCase();
+    const tagNumber = document.getElementById('tagNumber')?.value.trim();
     const btn = document.getElementById('submitBtn');
     const alertBox = document.getElementById('submitAlert');
 
     function showAlert(msg, type) {
-      alertBox.className = `alert alert-${type}`;
-      alertBox.innerHTML = msg;
-      alertBox.style.display = 'flex';
-      setTimeout(() => { alertBox.style.display = 'none'; }, 5000);
+      if (alertBox) {
+        alertBox.className = `alert alert-${type}`;
+        alertBox.innerHTML = msg;
+        alertBox.style.display = 'flex';
+        setTimeout(() => { if (alertBox) alertBox.style.display = 'none'; }, 5000);
+      }
     }
 
     if (!regNumber || !tagNumber) {
@@ -363,56 +369,69 @@
       return;
     }
 
-    btn.disabled = true;
-    btn.textContent = 'Submitting…';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+    }
 
     try {
       const result = await addLaundry(regNumber, currentUser.email, tagNumber);
       showAlert(`✅ Submitted! Tag #${result.tagNumber}`, 'success');
-      document.getElementById('regNumber').value = '';
-      document.getElementById('tagNumber').value = '';
+      const regInput = document.getElementById('regNumber');
+      const tagInput = document.getElementById('tagNumber');
+      if (regInput) regInput.value = '';
+      if (tagInput) tagInput.value = '';
       await loadEntries();
     } catch (err) {
       showAlert(`❌ Submission failed: ${err.message}`, 'error');
     } finally {
-      btn.disabled = false;
-      btn.textContent = 'Submit Laundry Bag';
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Submit Laundry Bag';
+      }
     }
   };
 
-  // ── Live check on registration number input ──
-  document.getElementById('regNumber').addEventListener('input', async function () {
-    const val = this.value.trim().toUpperCase();
-    const el = document.getElementById('scheduleCheck');
-    if (!val) {
-      el.textContent = '';
-      return;
-    }
-    try {
-      const check = await isSubmissionAllowed(val);
-      el.innerHTML = check.allowed
-        ? `<span style="color:var(--green);">✅ You can submit today!</span>`
-        : `<span style="color:var(--orange);">⚠️ ${check.message}</span>`;
-    } catch (err) {
-      el.innerHTML = '';
-    }
-  });
+  // Live schedule check
+  const regNumberInput = document.getElementById('regNumber');
+  if (regNumberInput) {
+    regNumberInput.addEventListener('input', async function () {
+      const val = this.value.trim().toUpperCase();
+      const el = document.getElementById('scheduleCheck');
+      if (!val) {
+        if (el) el.textContent = '';
+        return;
+      }
+      try {
+        const check = await isSubmissionAllowed(val);
+        if (el) {
+          el.innerHTML = check.allowed
+            ? `<span style="color:var(--green);">✅ You can submit today!</span>`
+            : `<span style="color:var(--orange);">⚠️ ${check.message}</span>`;
+        }
+      } catch (err) {
+        if (el) el.innerHTML = '';
+      }
+    });
+  }
 
-  // ── Submit Express Request ──
+  // Submit Express Request
   window.submitExpressRequest = async function () {
-    const regNumber = document.getElementById('expressRegNumber').value.trim().toUpperCase();
-    const tagNumber = document.getElementById('expressTagNumber').value.trim();
-    const reason = document.getElementById('expressReason').value;
-    const details = document.getElementById('expressDetails').value.trim();
-    const requestedDate = document.getElementById('expressDate').value;
-    const specialInstructions = document.getElementById('specialInstructions').value.trim();
+    const regNumber = document.getElementById('expressRegNumber')?.value.trim().toUpperCase();
+    const tagNumber = document.getElementById('expressTagNumber')?.value.trim();
+    const reason = document.getElementById('expressReason')?.value;
+    const details = document.getElementById('expressDetails')?.value.trim();
+    const requestedDate = document.getElementById('expressDate')?.value;
+    const specialInstructions = document.getElementById('specialInstructions')?.value.trim();
     const alertBox = document.getElementById('expressAlert');
     
     function showAlert(msg, type) {
-      alertBox.className = `alert alert-${type}`;
-      alertBox.innerHTML = msg;
-      alertBox.style.display = 'flex';
-      setTimeout(() => { alertBox.style.display = 'none'; }, 5000);
+      if (alertBox) {
+        alertBox.className = `alert alert-${type}`;
+        alertBox.innerHTML = msg;
+        alertBox.style.display = 'flex';
+        setTimeout(() => { if (alertBox) alertBox.style.display = 'none'; }, 5000);
+      }
     }
     
     if (!regNumber) {
@@ -446,143 +465,109 @@
     }
     
     const btn = document.getElementById('expressSubmitBtn');
-    btn.disabled = true;
-    btn.textContent = 'Submitting...';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+    }
     
     try {
       const result = await submitExpressRequest(regNumber, currentUser.email, tagNumber, reason, details, requestedDate, specialInstructions);
       showAlert(`✅ Express request submitted! Tag #${result.tagNumber}`, 'success');
       
-      document.getElementById('expressRegNumber').value = '';
-      document.getElementById('expressTagNumber').value = '';
-      document.getElementById('expressReason').value = '';
-      document.getElementById('expressDetails').value = '';
-      document.getElementById('expressDate').value = '';
-      document.getElementById('specialInstructions').value = '';
+      const regInput = document.getElementById('expressRegNumber');
+      const tagInput = document.getElementById('expressTagNumber');
+      const reasonSelect = document.getElementById('expressReason');
+      const detailsTextarea = document.getElementById('expressDetails');
+      const dateInput = document.getElementById('expressDate');
+      const instructionsTextarea = document.getElementById('specialInstructions');
+      
+      if (regInput) regInput.value = '';
+      if (tagInput) tagInput.value = '';
+      if (reasonSelect) reasonSelect.value = '';
+      if (detailsTextarea) detailsTextarea.value = '';
+      if (dateInput) dateInput.value = '';
+      if (instructionsTextarea) instructionsTextarea.value = '';
       
       await loadExpressRequests();
     } catch (err) {
       showAlert(`❌ Submission failed: ${err.message}`, 'error');
     } finally {
-      btn.disabled = false;
-      btn.textContent = '⚡ Submit Express (+₹100)';
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '⚡ Submit Express (+₹100)';
+      }
     }
   };
 
-  // ── Load Express Requests ──
+  // Load Express Requests
   async function loadExpressRequests() {
-    if (!currentUser) {
-      console.log('No current user found');
-      return;
-    }
+    if (!currentUser) return;
     
     const loader = document.getElementById('expressLoader');
     const content = document.getElementById('expressRequestsContent');
     
-    if (!loader || !content) {
-      console.log('Express request containers not found');
-      return;
-    }
+    if (!loader || !content) return;
     
     loader.style.display = 'flex';
     content.innerHTML = '';
     
     try {
-      console.log('Fetching express requests for:', currentUser.email);
       const requests = await getStudentExpressRequests(currentUser.email);
-      console.log('Requests received:', requests);
-      
       loader.style.display = 'none';
       
       if (!requests || requests.length === 0) {
-        content.innerHTML = `
-          <div style="text-align:center; padding:1rem; color:var(--gray-400); font-size:0.8rem;">
-            📭 No express requests yet
-          </div>`;
+        content.innerHTML = `<div style="text-align:center; padding:1rem; color:var(--gray-400); font-size:0.8rem;">📭 No express requests yet</div>`;
         return;
       }
       
       content.innerHTML = requests.map(req => renderExpressRequest(req)).join('');
     } catch (err) {
-      console.error('Error loading express requests:', err);
       loader.style.display = 'none';
-      content.innerHTML = `
-        <div style="text-align:center; padding:1rem; color:var(--orange); font-size:0.8rem;">
-          Nothing here Yet.
-        </div>`;
+      content.innerHTML = `<div style="text-align:center; padding:1rem; color:var(--orange); font-size:0.8rem;">⚠️ Unable to load requests</div>`;
     }
   }
 
-  // ── Render Express Request ──
+  // Render Express Request
   function renderExpressRequest(request) {
     const statusConfig = {
-      'pending': { class: 'badge-processing', text: '⏳ Pending', icon: '🕐', message: 'Waiting for admin approval' },
-      'approved': { class: 'badge-processing', text: '✅ Approved', icon: '✓', message: 'Request approved! Processing will start soon' },
-      'processing': { class: 'badge-processing', text: '⚙️ Processing', icon: '⚙️', message: 'Your laundry is being processed' },
-      'completed': { class: 'badge-completed', text: '🎉 Completed', icon: '✅', message: 'Ready for pickup!' },
-      'rejected': { class: 'badge-submitted', text: '❌ Rejected', icon: '❌', message: 'Request was rejected' }
+      'pending': { class: 'badge-processing', text: '⏳ Pending', message: 'Waiting for admin approval' },
+      'approved': { class: 'badge-processing', text: '✅ Approved', message: 'Request approved! Processing will start soon' },
+      'processing': { class: 'badge-processing', text: '⚙️ Processing', message: 'Your laundry is being processed' },
+      'completed': { class: 'badge-completed', text: '🎉 Completed', message: 'Ready for pickup!' },
+      'rejected': { class: 'badge-submitted', text: '❌ Rejected', message: 'Request was rejected' }
     };
     
     const status = statusConfig[request.status] || statusConfig.pending;
     
     let requestDate = 'Just now';
     try {
-      if (request.createdAt?.toDate) {
+      if (request.createdAt && typeof request.createdAt.toDate === 'function') {
         requestDate = request.createdAt.toDate().toLocaleString('en-IN');
-      } else if (request.createdAt) {
-        requestDate = new Date(request.createdAt).toLocaleString('en-IN');
       }
-    } catch (e) {
+    } catch(e) {
       requestDate = 'Recently';
     }
     
     const reasonNames = {
-      'exam': '📝 Upcoming Exam',
-      'interview': '💼 Job Interview',
-      'medical': '🏥 Medical Emergency',
-      'travel': '✈️ Travel/Urgent Trip',
-      'other': '📌 Other Reason'
+      'exam': '📝 Exam',
+      'interview': '💼 Interview',
+      'medical': '🏥 Medical',
+      'travel': '✈️ Travel',
+      'other': '📌 Other'
     };
     const reasonDisplay = reasonNames[request.reason] || request.reason || 'Not specified';
     
     return `
-      <div class="express-request-item" style="border:1px solid var(--gray-200); border-radius:var(--radius); padding:0.75rem; margin-bottom:0.75rem; background:var(--white);">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
-          <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-            <span style="font-weight:700; font-size:0.85rem; background:var(--navy); color:white; padding:2px 8px; border-radius:12px;">Tag #${request.tagNumber || 'N/A'}</span>
-            <span class="${status.class}" style="font-size:0.7rem; padding:2px 8px;">${status.text}</span>
-          </div>
-          <div style="font-size:0.65rem; color:var(--gray-400);">📅 ${requestDate}</div>
+      <div style="border:1px solid var(--gray-200); border-radius:var(--radius); padding:0.75rem; margin-bottom:0.75rem; background:var(--white);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+          <span style="font-weight:700; font-size:0.8rem; background:var(--navy); color:white; padding:2px 8px; border-radius:12px;">Tag #${request.tagNumber || 'N/A'}</span>
+          <span class="${status.class}" style="font-size:0.7rem; padding:2px 8px;">${status.text}</span>
         </div>
-        
-        <div style="margin-bottom:0.5rem;">
-          <div style="font-size:0.75rem; color:var(--gray-700); margin-bottom:0.25rem;">
-            <strong>📋 Reason:</strong> ${escapeHtml(reasonDisplay)}
-          </div>
-          <div style="font-size:0.7rem; color:var(--gray-600); background:var(--gray-100); padding:0.5rem; border-radius:var(--radius); margin-top:0.25rem;">
-            <strong>Details:</strong> ${escapeHtml(request.details || 'No details provided')}
-          </div>
-        </div>
-        
-        <div style="font-size:0.7rem; padding:0.4rem 0.5rem; border-radius:var(--radius); margin-top:0.5rem; background:var(--gray-100);">
-          <span style="font-weight:500;">${status.icon} ${status.message}</span>
-        </div>
-        
-        ${request.status === 'completed' && request.shelfNumber ? `
-          <div style="margin-top:0.5rem; background:var(--green-lt); padding:0.5rem; border-radius:var(--radius); font-size:0.75rem; font-weight:600; color:var(--green); text-align:center;">
-            📦 Ready for pickup at <strong>Shelf #${request.shelfNumber}</strong>
-          </div>
-        ` : ''}
-        
-        ${request.status === 'rejected' && request.rejectionReason ? `
-          <div style="margin-top:0.5rem; background:var(--red-lt); padding:0.5rem; border-radius:var(--radius); font-size:0.7rem;">
-            <strong>❌ Reason:</strong> ${escapeHtml(request.rejectionReason)}
-          </div>
-        ` : ''}
-        
-        <div style="margin-top:0.5rem; font-size:0.6rem; color:var(--gray-400); text-align:right;">
-          💰 Express Fee: ₹${request.expressFee || 100}
-        </div>
+        <div style="font-size:0.7rem; margin-bottom:0.25rem;"><strong>Reason:</strong> ${reasonDisplay}</div>
+        <div style="font-size:0.65rem; color:var(--gray-500);">📅 ${requestDate}</div>
+        <div style="font-size:0.65rem; margin-top:0.5rem; color:var(--gray-600);">${status.message}</div>
+        ${request.status === 'completed' && request.shelfNumber ? `<div style="margin-top:0.5rem; background:var(--green-lt); padding:0.3rem; border-radius:var(--radius); font-size:0.7rem; text-align:center;">📦 Shelf #${request.shelfNumber}</div>` : ''}
+        ${request.status === 'rejected' && request.rejectionReason ? `<div style="margin-top:0.5rem; font-size:0.65rem; color:var(--red);">Reason: ${escapeHtml(request.rejectionReason)}</div>` : ''}
       </div>
     `;
   }
@@ -597,10 +582,12 @@
       .replace(/'/g, '&#39;');
   }
 
-  // ── Chatbot Functions ──
+  // Chatbot Functions
   window.sendMessage = function () {
     const input = document.getElementById("userInput");
     const chatBox = document.getElementById("chatBox");
+    if (!input || !chatBox) return;
+    
     const userText = input.value.trim();
     if (!userText) return;
     
@@ -619,6 +606,8 @@
 
   function addMessageToChat(message, sender) {
     const chatBox = document.getElementById("chatBox");
+    if (!chatBox) return;
+    
     const messageDiv = document.createElement("div");
     messageDiv.className = `chat-message ${sender}`;
     const avatar = document.createElement("div");
@@ -639,32 +628,37 @@
   }
 
   function getBotResponse(text) {
-    const total = document.getElementById('statTotal').textContent;
-    const processing = document.getElementById('statProcessing').textContent;
-    const completed = document.getElementById('statCompleted').textContent;
+    const totalEl = document.getElementById('statTotal');
+    const processingEl = document.getElementById('statProcessing');
+    const completedEl = document.getElementById('statCompleted');
     
-    if (text.includes("status") || text.includes("progress")) {
+    const total = totalEl ? totalEl.textContent : '—';
+    const processing = processingEl ? processingEl.textContent : '—';
+    const completed = completedEl ? completedEl.textContent : '—';
+    
+    if (text.includes("status")) {
       if (total === '—' || total === '0') return "📋 You haven't submitted any laundry yet.";
       if (processing > '0') return `⚙️ You have ${processing} item(s) being processed.`;
       if (completed > '0') return `✅ You have ${completed} completed laundry item(s).`;
       return `📋 You have ${total} laundry submission(s).`;
     }
-    if (text.includes("shelf") || text.includes("where")) return "📦 Once completed, laundry will be placed on a shelf. Check your dashboard for the shelf number.";
-    if (text.includes("time") || text.includes("how long")) return "⏳ Laundry typically takes 6-7 hours depending on rush.";
-    if (text.includes("lost") || text.includes("found")) return "🔍 Check the Lost & Found page from the navigation bar above.";
-    if (text.includes("schedule") || text.includes("day")) {
+    if (text.includes("shelf")) return "📦 Once completed, laundry will be placed on a shelf.";
+    if (text.includes("time")) return "⏳ Laundry typically takes 6-7 hours.";
+    if (text.includes("lost")) return "🔍 Check the Lost & Found page from the navigation bar.";
+    if (text.includes("schedule")) {
       const schedule = {1:"Monday",2:"Tuesday",3:"Wednesday",4:"Thursday",5:"Friday",6:"Saturday",0:"Sunday"};
-      return `📅 Today is ${schedule[new Date().getDay()]}. Check Schedule page for full schedule.`;
+      return `📅 Today is ${schedule[new Date().getDay()]}.`;
     }
-    if (text.includes("hi") || text.includes("hello")) return "👋 Hello! I'm your Laundry Assistant. How can I help?";
-    if (text.includes("help")) return "💡 Ask me about: status, shelf, time, lost & found, or schedule!";
-    if (text.includes("thank")) return "😊 You're welcome!";
+    if (text.includes("hi") || text.includes("hello")) return "👋 Hello! How can I help?";
     return "🤔 Try asking about status, shelf, time, lost & found, or schedule!";
   }
 
   window.sendSuggested = function(question) {
-    document.getElementById('userInput').value = question;
-    sendMessage();
+    const input = document.getElementById('userInput');
+    if (input) {
+      input.value = question;
+      sendMessage();
+    }
   };
 </script>
 
