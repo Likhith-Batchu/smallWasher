@@ -150,6 +150,7 @@
   let unsubscribe = null;
   let expressUnsubscribe = null;
   let expressRequests = [];
+  let currentWorkerUser = null;
 
   // Translations
   const translations = {
@@ -178,6 +179,7 @@
       window.location.href = 'student.html'; 
       return;
     }
+    currentWorkerUser = user;
     document.getElementById('workerEmail').textContent = user.email;
     startRealTimeListener();
     startExpressRequestsListener();
@@ -512,20 +514,21 @@
     modal.innerHTML = `
       <div class="modal-content">
         <h3>✅ Approve Express Request</h3>
-        <p>Request from: <strong>${req.userEmail}</strong></p>
-        <p>Reason: ${req.reason}</p>
+        <p>Request from: <strong>${escapeHtml(req.userEmail)}</strong></p>
+        <p><strong>Reason:</strong> ${escapeHtml(req.reason)}</p>
+        <p><strong>Details:</strong> ${escapeHtml(req.details || 'No details')}</p>
         
-        <div class="form-group">
-          <label>Pickup Date & Time *</label>
-          <input type="datetime-local" id="pickupTime" class="modal-input" />
+        <div class="form-group" style="margin-top:1rem;">
+          <label style="font-size:0.8rem; font-weight:600;">Pickup Date & Time *</label>
+          <input type="datetime-local" id="pickupTime" class="modal-input" style="width:100%; padding:8px; margin-top:5px;" />
         </div>
         
-        <div class="form-group">
-          <label>Expected Delivery Time *</label>
-          <input type="datetime-local" id="deliveryTime" class="modal-input" />
+        <div class="form-group" style="margin-top:1rem;">
+          <label style="font-size:0.8rem; font-weight:600;">Expected Delivery Time *</label>
+          <input type="datetime-local" id="deliveryTime" class="modal-input" style="width:100%; padding:8px; margin-top:5px;" />
         </div>
         
-        <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+        <div style="display:flex; gap:0.5rem; margin-top:1.5rem;">
           <button class="btn btn-green" id="confirmApprove">Confirm Approval</button>
           <button class="btn btn-outline" id="closeModal">Cancel</button>
         </div>
@@ -543,8 +546,20 @@
         return;
       }
       
-      await approveExpressRequest(req.id, pickupTime, deliveryTime, auth.currentUser.email);
-      modal.remove();
+      // Disable button to prevent double submission
+      const confirmBtn = document.getElementById('confirmApprove');
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Approving...';
+      
+      try {
+        await approveExpressRequest(req.id, pickupTime, deliveryTime, currentWorkerUser.email);
+        alert('✅ Request approved successfully!');
+        modal.remove();
+      } catch (err) {
+        alert('❌ Failed to approve: ' + err.message);
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Confirm Approval';
+      }
     };
     
     document.getElementById('closeModal').onclick = () => modal.remove();
@@ -556,14 +571,15 @@
     modal.innerHTML = `
       <div class="modal-content">
         <h3>❌ Reject Express Request</h3>
-        <p>Request from: <strong>${req.userEmail}</strong></p>
+        <p>Request from: <strong>${escapeHtml(req.userEmail)}</strong></p>
+        <p><strong>Reason:</strong> ${escapeHtml(req.reason)}</p>
         
-        <div class="form-group">
-          <label>Rejection Reason *</label>
-          <textarea id="rejectReason" rows="3" placeholder="Why is this request being rejected?" class="modal-input"></textarea>
+        <div class="form-group" style="margin-top:1rem;">
+          <label style="font-size:0.8rem; font-weight:600;">Rejection Reason *</label>
+          <textarea id="rejectReason" rows="3" placeholder="Why is this request being rejected?" class="modal-input" style="width:100%; padding:8px; margin-top:5px;"></textarea>
         </div>
         
-        <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+        <div style="display:flex; gap:0.5rem; margin-top:1.5rem;">
           <button class="btn btn-orange" id="confirmReject">Confirm Rejection</button>
           <button class="btn btn-outline" id="closeModal">Cancel</button>
         </div>
@@ -578,8 +594,20 @@
         alert('Please provide a rejection reason');
         return;
       }
-      await rejectExpressRequest(req.id, reason, auth.currentUser.email);
-      modal.remove();
+      
+      const confirmBtn = document.getElementById('confirmReject');
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Rejecting...';
+      
+      try {
+        await rejectExpressRequest(req.id, reason, currentWorkerUser.email);
+        alert('❌ Request rejected successfully');
+        modal.remove();
+      } catch (err) {
+        alert('Failed to reject: ' + err.message);
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Confirm Rejection';
+      }
     };
     
     document.getElementById('closeModal').onclick = () => modal.remove();
@@ -593,11 +621,30 @@
     
     let shelfNumber = null;
     if (newStatus === 'completed') {
-      shelfNumber = prompt('Enter shelf number for pickup:', '1-5');
+      shelfNumber = prompt('Enter shelf number for pickup (1-5):', '1');
       if (!shelfNumber) return;
+      if (isNaN(shelfNumber) || shelfNumber < 1 || shelfNumber > 5) {
+        alert('Please enter a valid shelf number between 1 and 5');
+        return;
+      }
     }
     
-    await updateExpressStatus(req.id, newStatus, shelfNumber);
+    try {
+      await updateExpressStatus(req.id, newStatus, shelfNumber);
+      alert(`✅ Request marked as ${newStatus}`);
+    } catch (err) {
+      alert('Failed to update status: ' + err.message);
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   // ── Language Change ──
