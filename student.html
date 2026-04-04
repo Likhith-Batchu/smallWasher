@@ -335,7 +335,7 @@
     btn.textContent = 'Submitting…';
 
     try {
-      const result = await addLaundry(regNumber, currentUser.email);
+      const result = await addLaundry(regNumber, currentUser.email, tagNumber);
       showAlert(`✅ Submitted! Your tag number is <strong>#${result.tagNumber}</strong>. Track below.`, 'success');
       document.getElementById('regNumber').value = '';
       document.getElementById('tagNumber').value = '';
