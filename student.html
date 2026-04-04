@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Student Dashboard — DhobiDesk</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css" 
 </head>
 <body>
 
@@ -55,6 +55,10 @@
           <input type="text" id="regNumber" placeholder="e.g. 20CS140" style="margin-top:4px;" />
         </div>
 
+        <div class="form-group" style="margin-bottom:0.75rem;">
+          <label for="tagNumber" style="font-size:0.78rem;">Tag Number</label>
+          <input type="number" id="tagNumber" placeholder="Enter tag on your bag" style="margin-top:4px;" />
+        </div>
         <div id="scheduleCheck" style="font-size:0.8rem;color:var(--gray-400);margin-bottom:0.75rem;"></div>
 
         <button class="btn btn-primary" id="submitBtn" onclick="submitLaundry()" style="width:100%;justify-content:center;">
@@ -299,6 +303,7 @@
   // ── Submit Laundry ──
   window.submitLaundry = async function () {
     const regNumber = document.getElementById('regNumber').value.trim().toUpperCase();
+    const tagNumber = document.getElementById('tagNumber').value.trim();
     const btn       = document.getElementById('submitBtn');
     const alertBox  = document.getElementById('submitAlert');
 
@@ -308,8 +313,9 @@
       alertBox.style.display = 'flex';
     }
 
-    if (!regNumber) {
-      showAlert('❌ Please enter your registration number.', 'error'); return;
+    if (!regNumber || !tagNumber) {
+      showAlert('❌ Please enter correct registration number and tag number.', 'error'); 
+      return;
     }
 
     // Check schedule eligibility
@@ -320,6 +326,11 @@
       return;
     }
 
+    if (isNaN(tagNumber) || tagNumber <= 0) {
+      showAlert('Invalid tag number.', 'error');
+      return;
+    }
+
     btn.disabled = true;
     btn.textContent = 'Submitting…';
 
@@ -327,6 +338,7 @@
       const result = await addLaundry(regNumber, currentUser.email);
       showAlert(`✅ Submitted! Your tag number is <strong>#${result.tagNumber}</strong>. Track below.`, 'success');
       document.getElementById('regNumber').value = '';
+      document.getElementById('tagNumber').value = '';
       await loadEntries();
     } catch (err) {
       showAlert(`❌ Submission failed: ${err.message}`, 'error');
@@ -337,15 +349,25 @@
   };
 
   // ── Live check on registration number input ──
-  document.getElementById('regNumber').addEventListener('input', function () {
-    const val = this.value.trim().toUpperCase();
-    const el  = document.getElementById('scheduleCheck');
-    if (!val) { el.textContent = ''; return; }
-    const check = isSubmissionAllowed(val);
+document.getElementById('regNumber').addEventListener('input', async function () {
+  const val = this.value.trim().toUpperCase();
+  const el  = document.getElementById('scheduleCheck');
+
+  if (!val) {
+    el.textContent = '';
+    return;
+  }
+
+  try {
+    const check = await isSubmissionAllowed(val); // ✅ FIX
+
     el.innerHTML = check.allowed
       ? `<span style="color:var(--green);">✅ You can submit today!</span>`
-      : `<span style="color:var(--orange);">⚠️ ${check.reason}</span>`;
-  });
+      : `<span style="color:var(--orange);">⚠️ ${check.message}</span>`;
+  } catch (err) {
+    el.innerHTML = '';
+  }
+});
   // ── Send message to chatbot ──
 window.sendMessage = function () {
   const input = document.getElementById("userInput");
