@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -469,73 +469,224 @@
     }
   };
 
-  // ── Load Express Requests ──
-  async function loadExpressRequests() {
-    if (!currentUser) {
-      console.log('No current user found');
-      return;
-    }
-    
-    const loader = document.getElementById('expressLoader');
-    const content = document.getElementById('expressRequestsContent');
-    
-    if (!loader || !content) {
-      console.log('Express request containers not found');
-      return;
-    }
-    
-    loader.style.display = 'flex';
-    content.innerHTML = '';
-    
-    try {
-      console.log('Fetching express requests for:', currentUser.email);
-      const requests = await getStudentExpressRequests(currentUser.email);
-      console.log('Requests received:', requests);
-      
-      loader.style.display = 'none';
-      
-      if (!requests || requests.length === 0) {
-        content.innerHTML = `
-          <div style="text-align:center; padding:1rem; color:var(--gray-400); font-size:0.8rem;">
-            📭 No express requests yet
-          </div>`;
-        return;
-      }
-      
-      content.innerHTML = requests.map(req => renderExpressRequest(req)).join('');
-    } catch (err) {
-      console.error('Error loading express requests:', err);
-      loader.style.display = 'none';
-      content.innerHTML = `
-        <div style="text-align:center; padding:1rem; color:var(--orange); font-size:0.8rem;">
-          Nothing here Yet.
-        </div>`;
-    }
+  // ── Load Express Requests with FULL STATUS DISPLAY ──
+  // ── Load Express Requests with better error handling ──
+async function loadExpressRequests() {
+  if (!currentUser) {
+    console.log('No current user found');
+    return;
   }
+  
+  const loader = document.getElementById('expressLoader');
+  const content = document.getElementById('expressRequestsContent');
+  
+  if (!loader || !content) {
+    console.log('Express request containers not found');
+    return;
+  }
+  
+  loader.style.display = 'flex';
+  content.innerHTML = '';
+  
+  try {
+    console.log('Fetching express requests for:', currentUser.email);
+    const requests = await getStudentExpressRequests(currentUser.email);
+    console.log('Requests received:', requests);
+    
+    loader.style.display = 'none';
+    
+    if (!requests || requests.length === 0) {
+      content.innerHTML = `
+        <div style="text-align:center; padding:1rem; color:var(--gray-400); font-size:0.8rem;">
+          📭 No express requests yet
+        </div>`;
+      return;
+    }
+    
+    content.innerHTML = requests.map(req => renderExpressRequest(req)).join('');
+  } catch (err) {
+    console.error('Error loading express requests:', err);
+    loader.style.display = 'none';
+    // Show a more helpful message instead of just "Failed to load"
+    content.innerHTML = `
+      <div style="text-align:center; padding:1rem; color:var(--orange); font-size:0.8rem;">
+        Nothing here Yet.
+        <br><small>Error: ${err.message}</small>
+      </div>`;
+  }
+}
 
-  // ── Render Express Request ──
-  function renderExpressRequest(request) {
-    const statusConfig = {
-      'pending': { class: 'badge-processing', text: '⏳ Pending', icon: '🕐', message: 'Waiting for admin approval' },
-      'approved': { class: 'badge-processing', text: '✅ Approved', icon: '✓', message: 'Request approved! Processing will start soon' },
-      'processing': { class: 'badge-processing', text: '⚙️ Processing', icon: '⚙️', message: 'Your laundry is being processed' },
-      'completed': { class: 'badge-completed', text: '🎉 Completed', icon: '✅', message: 'Ready for pickup!' },
-      'rejected': { class: 'badge-submitted', text: '❌ Rejected', icon: '❌', message: 'Request was rejected' }
-    };
+  // ── Render Express Request with FULL STATUS and DETAILS ──
+  // ── Render Express Request with FULL STATUS and DETAILS ──
+function renderExpressRequest(request) {
+  // Status configuration with colors and icons
+  const statusConfig = {
+    'pending': { 
+      class: 'badge-processing', 
+      text: '⏳ Pending', 
+      bg: '#ea580c20',
+      border: '#ea580c',
+      icon: '🕐',
+      message: 'Waiting for admin approval'
+    },
+    'approved': { 
+      class: 'badge-processing', 
+      text: '✅ Approved', 
+      bg: '#2253a820',
+      border: '#2253a8',
+      icon: '✓',
+      message: 'Request approved! Processing will start soon'
+    },
+    'processing': { 
+      class: 'badge-processing', 
+      text: '⚙️ Processing', 
+      bg: '#f5a62320',
+      border: '#f5a623',
+      icon: '⚙️',
+      message: 'Your laundry is being processed'
+    },
+    'completed': { 
+      class: 'badge-completed', 
+      text: '🎉 Completed', 
+      bg: '#16a34a20',
+      border: '#16a34a',
+      icon: '✅',
+      message: 'Ready for pickup!'
+    },
+    'rejected': { 
+      class: 'badge-submitted', 
+      text: '❌ Rejected', 
+      bg: '#dc262620',
+      border: '#dc2626',
+      icon: '❌',
+      message: 'Request was rejected'
+    }
+  };
+  
+  const status = statusConfig[request.status] || statusConfig.pending;
+  
+  // Safely format dates
+  let requestDate = 'Just now';
+  try {
+    if (request.createdAt?.toDate) {
+      requestDate = request.createdAt.toDate().toLocaleString('en-IN');
+    } else if (request.createdAt) {
+      requestDate = new Date(request.createdAt).toLocaleString('en-IN');
+    }
+  } catch (e) {
+    requestDate = 'Recently';
+  }
+  
+  // Format scheduled times if available
+  let scheduledPickup = null;
+  let scheduledDelivery = null;
+  try {
+    if (request.scheduledPickupTime) {
+      scheduledPickup = new Date(request.scheduledPickupTime).toLocaleString('en-IN');
+    }
+    if (request.scheduledDeliveryTime) {
+      scheduledDelivery = new Date(request.scheduledDeliveryTime).toLocaleString('en-IN');
+    }
+  } catch (e) {
+    console.log('Date parsing error');
+  }
+  
+  // Get reason display name
+  const reasonNames = {
+    'exam': '📝 Upcoming Exam',
+    'interview': '💼 Job Interview',
+    'medical': '🏥 Medical Emergency',
+    'travel': '✈️ Travel/Urgent Trip',
+    'other': '📌 Other Reason'
+  };
+  const reasonDisplay = reasonNames[request.reason] || request.reason || 'Not specified';
+  
+  return `
+    <div class="express-request-item" style="border:1px solid var(--gray-200); border-radius:var(--radius); padding:0.75rem; margin-bottom:0.75rem; background:var(--white);">
+      <!-- Header with Tag and Status -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
+        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+          <span style="font-weight:700; font-size:0.85rem; background:var(--navy); color:white; padding:2px 8px; border-radius:12px;">Tag #${request.tagNumber || 'N/A'}</span>
+          <span class="${status.class}" style="font-size:0.7rem; padding:2px 8px;">${status.text}</span>
+        </div>
+        <div style="font-size:0.65rem; color:var(--gray-400);">📅 ${requestDate}</div>
+      </div>
+      
+      <!-- Request Details -->
+      <div style="margin-bottom:0.5rem;">
+        <div style="font-size:0.75rem; color:var(--gray-700); margin-bottom:0.25rem;">
+          <strong>📋 Reason:</strong> ${escapeHtml(reasonDisplay)}
+        </div>
+        <div style="font-size:0.7rem; color:var(--gray-600); background:var(--gray-100); padding:0.5rem; border-radius:var(--radius); margin-top:0.25rem;">
+          <strong>Details:</strong> ${escapeHtml(request.details || 'No details provided')}
+        </div>
+        ${request.specialInstructions ? `
+          <div style="font-size:0.7rem; color:var(--gray-600); margin-top:0.25rem;">
+            <strong>📌 Special Instructions:</strong> ${escapeHtml(request.specialInstructions)}
+          </div>
+        ` : ''}
+      </div>
+      
+      <!-- Status Message -->
+      <div style="font-size:0.7rem; padding:0.4rem 0.5rem; border-radius:var(--radius); margin-top:0.5rem; background:${status.bg}; border-left:3px solid ${status.border};">
+        <span style="font-weight:500;">${status.icon} ${status.message}</span>
+      </div>
+      
+      <!-- Scheduled Times (if approved/processing/completed) -->
+      ${(request.status === 'approved' || request.status === 'processing' || request.status === 'completed') && scheduledPickup ? `
+        <div style="margin-top:0.5rem; padding-top:0.5rem; border-top:1px solid var(--gray-200); font-size:0.7rem;">
+          <div><strong>📦 Pickup:</strong> ${scheduledPickup}</div>
+          ${scheduledDelivery ? `<div><strong>🎯 Expected Delivery:</strong> ${scheduledDelivery}</div>` : ''}
+        </div>
+      ` : ''}
+      
+      <!-- Shelf Number (if completed) -->
+      ${request.status === 'completed' && request.shelfNumber ? `
+        <div style="margin-top:0.5rem; background:var(--green-lt); padding:0.5rem; border-radius:var(--radius); font-size:0.75rem; font-weight:600; color:var(--green); text-align:center;">
+          📦 Ready for pickup at <strong>Shelf #${request.shelfNumber}</strong>
+        </div>
+      ` : ''}
+      
+      <!-- Rejection Reason (if rejected) -->
+      ${request.status === 'rejected' && request.rejectionReason ? `
+        <div style="margin-top:0.5rem; background:var(--red-lt); padding:0.5rem; border-radius:var(--radius); font-size:0.7rem;">
+          <strong>❌ Reason:</strong> ${escapeHtml(request.rejectionReason)}
+        </div>
+      ` : ''}
+      
+      <!-- Fee Information -->
+      <div style="margin-top:0.5rem; font-size:0.6rem; color:var(--gray-400); text-align:right;">
+        💰 Express Fee: ₹${request.expressFee || 100}
+      </div>
+    </div>
+  `;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
     
     const status = statusConfig[request.status] || statusConfig.pending;
+    const requestDate = request.createdAt?.toDate?.() 
+      ? request.createdAt.toDate().toLocaleString('en-IN')
+      : new Date().toLocaleString();
     
-    let requestDate = 'Just now';
-    try {
-      if (request.createdAt?.toDate) {
-        requestDate = request.createdAt.toDate().toLocaleString('en-IN');
-      } else if (request.createdAt) {
-        requestDate = new Date(request.createdAt).toLocaleString('en-IN');
-      }
-    } catch (e) {
-      requestDate = 'Recently';
-    }
+    // Format scheduled times if available
+    const scheduledPickup = request.scheduledPickupTime 
+      ? new Date(request.scheduledPickupTime).toLocaleString('en-IN')
+      : null;
+      
+    const scheduledDelivery = request.scheduledDeliveryTime
+      ? new Date(request.scheduledDeliveryTime).toLocaleString('en-IN')
+      : null;
     
+    // Get reason display name
     const reasonNames = {
       'exam': '📝 Upcoming Exam',
       'interview': '💼 Job Interview',
@@ -543,44 +694,65 @@
       'travel': '✈️ Travel/Urgent Trip',
       'other': '📌 Other Reason'
     };
-    const reasonDisplay = reasonNames[request.reason] || request.reason || 'Not specified';
+    const reasonDisplay = reasonNames[request.reason] || request.reason;
     
     return `
       <div class="express-request-item" style="border:1px solid var(--gray-200); border-radius:var(--radius); padding:0.75rem; margin-bottom:0.75rem; background:var(--white);">
+        <!-- Header with Tag and Status -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
-          <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-            <span style="font-weight:700; font-size:0.85rem; background:var(--navy); color:white; padding:2px 8px; border-radius:12px;">Tag #${request.tagNumber || 'N/A'}</span>
-            <span class="${status.class}" style="font-size:0.7rem; padding:2px 8px;">${status.text}</span>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span style="font-weight:700; font-size:0.9rem; background:var(--navy); color:white; padding:2px 8px; border-radius:12px;">Tag #${request.tagNumber}</span>
+            <span class="${status.class}" style="font-size:0.7rem; padding:4px 10px;">${status.text}</span>
           </div>
-          <div style="font-size:0.65rem; color:var(--gray-400);">📅 ${requestDate}</div>
+          <div style="font-size:0.7rem; color:var(--gray-400);">📅 ${requestDate}</div>
         </div>
         
+        <!-- Request Details -->
         <div style="margin-bottom:0.5rem;">
-          <div style="font-size:0.75rem; color:var(--gray-700); margin-bottom:0.25rem;">
-            <strong>📋 Reason:</strong> ${escapeHtml(reasonDisplay)}
+          <div style="font-size:0.75rem; color:var(--gray-600); margin-bottom:0.25rem;">
+            <strong>Reason:</strong> ${reasonDisplay}
           </div>
-          <div style="font-size:0.7rem; color:var(--gray-600); background:var(--gray-100); padding:0.5rem; border-radius:var(--radius); margin-top:0.25rem;">
-            <strong>Details:</strong> ${escapeHtml(request.details || 'No details provided')}
+          <div style="font-size:0.7rem; color:var(--gray-500); background:var(--gray-100); padding:0.5rem; border-radius:var(--radius); margin-top:0.25rem;">
+            <strong>📝 Details:</strong> ${escapeHtml(request.details || 'No details provided')}
           </div>
+          ${request.specialInstructions ? `
+            <div style="font-size:0.7rem; color:var(--gray-500); margin-top:0.25rem;">
+              <strong>📌 Special Instructions:</strong> ${escapeHtml(request.specialInstructions)}
+            </div>
+          ` : ''}
         </div>
         
-        <div style="font-size:0.7rem; padding:0.4rem 0.5rem; border-radius:var(--radius); margin-top:0.5rem; background:var(--gray-100);">
-          <span style="font-weight:500;">${status.icon} ${status.message}</span>
+        <!-- Status Message -->
+        <div style="font-size:0.7rem; padding:0.5rem; border-radius:var(--radius); margin-top:0.5rem; background:${status.color}10; border-left:3px solid ${status.color};">
+          <span style="font-weight:500;">${status.icon} Status Update:</span> ${status.message}
         </div>
         
+        <!-- Scheduled Times (if approved) -->
+        ${(request.status === 'approved' || request.status === 'processing' || request.status === 'completed') && scheduledPickup ? `
+          <div style="margin-top:0.5rem; padding-top:0.5rem; border-top:1px solid var(--gray-200); font-size:0.7rem;">
+            <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+              <div><strong>📦 Pickup:</strong> ${scheduledPickup}</div>
+              <div><strong>🎯 Delivery:</strong> ${scheduledDelivery || 'To be confirmed'}</div>
+            </div>
+          </div>
+        ` : ''}
+        
+        <!-- Shelf Number (if completed) -->
         ${request.status === 'completed' && request.shelfNumber ? `
-          <div style="margin-top:0.5rem; background:var(--green-lt); padding:0.5rem; border-radius:var(--radius); font-size:0.75rem; font-weight:600; color:var(--green); text-align:center;">
+          <div style="margin-top:0.5rem; background:var(--green-lt); padding:0.5rem; border-radius:var(--radius); font-size:0.75rem; font-weight:600; color:var(--green);">
             📦 Ready for pickup at <strong>Shelf #${request.shelfNumber}</strong>
           </div>
         ` : ''}
         
+        <!-- Rejection Reason (if rejected) -->
         ${request.status === 'rejected' && request.rejectionReason ? `
           <div style="margin-top:0.5rem; background:var(--red-lt); padding:0.5rem; border-radius:var(--radius); font-size:0.7rem;">
-            <strong>❌ Reason:</strong> ${escapeHtml(request.rejectionReason)}
+            <strong>❌ Rejection Reason:</strong> ${escapeHtml(request.rejectionReason)}
           </div>
         ` : ''}
         
-        <div style="margin-top:0.5rem; font-size:0.6rem; color:var(--gray-400); text-align:right;">
+        <!-- Fee Information -->
+        <div style="margin-top:0.5rem; font-size:0.65rem; color:var(--gray-400); text-align:right;">
           💰 Express Fee: ₹${request.expressFee || 100}
         </div>
       </div>
