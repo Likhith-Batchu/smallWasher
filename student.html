@@ -509,6 +509,144 @@ function getBotResponse(text) {
     return "🤔 I'm not sure about that. Try asking about:\n• 'What's my laundry status?'\n• 'Where will my laundry be?'\n• 'How long does it take?'\n• 'Lost and found'\n• 'Schedule'";
   }
 }
+  window.submitExpressRequest = async function () {
+  const regNumber = document.getElementById('expressRegNumber').value.trim().toUpperCase();
+  const reason = document.getElementById('expressReason').value;
+  const details = document.getElementById('expressDetails').value.trim();
+  const requestedDate = document.getElementById('expressDate').value;
+  const specialInstructions = document.getElementById('specialInstructions').value.trim();
+  const alertBox = document.getElementById('expressAlert');
+  
+  function showAlert(msg, type) {
+    alertBox.className = `alert alert-${type}`;
+    alertBox.innerHTML = msg;
+    alertBox.style.display = 'flex';
+    setTimeout(() => { alertBox.style.display = 'none'; }, 5000);
+  }
+  
+  if (!regNumber) {
+    showAlert('❌ Please enter your registration number.', 'error');
+    return;
+  }
+  
+  if (!reason) {
+    showAlert('❌ Please select a reason for express service.', 'error');
+    return;
+  }
+  
+  if (!details) {
+    showAlert('❌ Please explain why you need express service.', 'error');
+    return;
+  }
+  
+  if (!requestedDate) {
+    showAlert('❌ Please specify when you need the laundry ready.', 'error');
+    return;
+  }
+  
+  const btn = document.getElementById('expressSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting Express Request...';
+  
+  try {
+    const result = await submitExpressRequest(regNumber, currentUser.email, reason, details, requestedDate, specialInstructions);
+    showAlert(`✅ Express request submitted! Request ID: #${result.tagNumber}. Admin will review shortly.`, 'success');
+    
+    // Clear form
+    document.getElementById('expressRegNumber').value = '';
+    document.getElementById('expressReason').value = '';
+    document.getElementById('expressDetails').value = '';
+    document.getElementById('expressDate').value = '';
+    document.getElementById('specialInstructions').value = '';
+    
+    // Refresh express requests list
+    loadExpressRequests();
+  } catch (err) {
+    showAlert(`❌ Submission failed: ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚡ Submit Express Request (+₹100)';
+  }
+};
+
+// Load student's express requests
+async function loadExpressRequests() {
+  if (!currentUser) return;
+  
+  const loader = document.getElementById('expressLoader');
+  const content = document.getElementById('expressRequestsContent');
+  
+  loader.style.display = 'flex';
+  content.innerHTML = '';
+  
+  try {
+    const requests = await getStudentExpressRequests(currentUser.email);
+    loader.style.display = 'none';
+    
+    if (requests.length === 0) {
+      content.innerHTML = `
+        <div style="text-align:center; padding:1rem; color:var(--gray-400); font-size:0.8rem;">
+          No express requests yet
+        </div>`;
+      return;
+    }
+    
+    content.innerHTML = requests.map(req => renderExpressRequest(req)).join('');
+  } catch (err) {
+    loader.style.display = 'none';
+    content.innerHTML = `<div class="alert alert-error">Failed to load requests</div>`;
+  }
+}
+
+function renderExpressRequest(request) {
+  const statusConfig = {
+    'pending': { class: 'badge-processing', text: '⏳ Pending Approval', icon: '🕐' },
+    'approved': { class: 'badge-processing', text: '✅ Approved', icon: '✓' },
+    'processing': { class: 'badge-processing', text: '⚙️ Processing', icon: '⚙️' },
+    'completed': { class: 'badge-completed', text: '🎉 Completed', icon: '✅' },
+    'rejected': { class: 'badge-submitted', text: '❌ Rejected', icon: '❌' }
+  };
+  
+  const status = statusConfig[request.status] || statusConfig.pending;
+  
+  const requestDate = request.createdAt?.toDate?.() 
+    ? request.createdAt.toDate().toLocaleDateString('en-IN')
+    : '—';
+    
+  const scheduledPickup = request.scheduledPickupTime 
+    ? new Date(request.scheduledPickupTime).toLocaleString('en-IN')
+    : 'Pending approval';
+    
+  const scheduledDelivery = request.scheduledDeliveryTime
+    ? new Date(request.scheduledDeliveryTime).toLocaleString('en-IN')
+    : 'Pending approval';
+  
+  return `
+    <div class="express-request-item" style="border-bottom:1px solid var(--gray-200); padding:0.75rem 0;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+        <span style="font-weight:600; font-size:0.85rem;">Tag #${request.tagNumber}</span>
+        <span class="${status.class}" style="font-size:0.7rem;">${status.text}</span>
+      </div>
+      <div style="font-size:0.75rem; color:var(--gray-600); margin-bottom:0.25rem;">
+        <strong>Reason:</strong> ${request.reason}
+      </div>
+      <div style="font-size:0.7rem; color:var(--gray-400);">
+        📅 Requested: ${requestDate}
+      </div>
+      ${request.status === 'approved' || request.status === 'processing' || request.status === 'completed' ? `
+        <div style="font-size:0.7rem; color:var(--green); margin-top:0.25rem;">
+          📦 Pickup: ${scheduledPickup}<br>
+          🎯 Delivery: ${scheduledDelivery}
+        </div>
+      ` : ''}
+      ${request.status === 'rejected' && request.rejectionReason ? `
+        <div style="font-size:0.7rem; color:var(--red); margin-top:0.25rem;">
+          Reason: ${request.rejectionReason}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
 
 // ── Send suggested question ──
 window.sendSuggested = function(question) {
