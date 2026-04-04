@@ -18,6 +18,12 @@
     <li><a href="lostfound.html">Lost & Found</a></li>
     <li><a href="schedule.html">Schedule</a></li>
     <li><a href="#" id="logoutBtn">Logout</a></li>
+    <li>
+  <select id="langToggle" onchange="changeLanguage(this.value)">
+    <option value="en">English</option>
+    <option value="ta">தமிழ்</option>
+  </select>
+</li>
   </ul>
 </nav>
 
@@ -134,6 +140,18 @@
 } from './firebase.js';
 
   let allEntries = [];
+  const translations = {
+  en: {
+    dashboard: "👷 Worker Dashboard",
+    manage: "Manage Laundry",
+    assignRoom: "Assign Room",
+  },
+  ta: {
+    dashboard: "👷 பணியாளர் டாஷ்போர்ட்",
+    manage: "துவைக்கையை நிர்வகிக்கவும்",
+    assignRoom: "அறை ஒதுக்கவும்",
+  }
+};
   let unsubscribe = null;
 
   // ── Auth Guard: only workers allowed ──
@@ -376,6 +394,16 @@ window.bulkAssignShelf = async function () {
   }
 
   alert("Shelf assigned to selected entries 📦");
+};
+  window.changeLanguage = function (lang) {
+  document.querySelector('.header-badge').textContent =
+    translations[lang].dashboard;
+
+  document.querySelector('h1').textContent =
+    translations[lang].manage;
+
+  document.querySelector('.card-header h3').textContent =
+    translations[lang].assignRoom;
 };
 </script>
 
