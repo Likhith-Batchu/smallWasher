@@ -113,22 +113,52 @@
     </main>
   </div>
 </div>
-<div class="card" style="margin-top:20px;">
+<!-- Chatbot Section -->
+<div class="card chat-container" style="margin-top: 1.5rem;">
   <div class="card-header">
     <h3>🤖 Laundry Assistant</h3>
+    <span style="font-size: 0.7rem; color: var(--gray-400);">Ask me anything about laundry</span>
   </div>
-
   <div class="card-body">
-
-    <!-- Chat area -->
-    <div id="chatBox" class="chat-box"></div>
-
-    <!-- Input -->
-    <div class="chat-input">
-      <input type="text" id="userInput" placeholder="Ask about your laundry..." />
-      <button class="btn btn-green" onclick="sendMessage()">Send</button>
+    
+    <!-- Chat messages container -->
+    <div id="chatBox" class="chat-box">
+      <div class="chat-empty">
+        <div class="chat-empty-icon">💬</div>
+        <div class="chat-empty-text">Ask me about your laundry status, shelf numbers, or schedule!</div>
+      </div>
     </div>
-
+    
+    <!-- Chat input area -->
+    <div class="chat-input-container">
+      <input 
+        type="text" 
+        id="userInput" 
+        class="chat-input" 
+        placeholder="Type your question here... e.g., 'What's my laundry status?'"
+        onkeypress="if(event.key === 'Enter') sendMessage()"
+      />
+      <button class="chat-send-btn" onclick="sendMessage()">
+        <span>📤</span> Send
+      </button>
+    </div>
+    
+    <!-- Suggested questions -->
+    <div class="chat-suggestions">
+      <div class="chat-suggestion-chip" onclick="sendSuggested('What is my laundry status?')">
+        📋 Status
+      </div>
+      <div class="chat-suggestion-chip" onclick="sendSuggested('Where will my laundry be?')">
+        📦 Shelf
+      </div>
+      <div class="chat-suggestion-chip" onclick="sendSuggested('How long does it take?')">
+        ⏰ Time
+      </div>
+      <div class="chat-suggestion-chip" onclick="sendSuggested('I lost something')">
+        🔍 Lost & Found
+      </div>
+    </div>
+    
   </div>
 </div>
 <!-- ── Footer ── -->
@@ -311,54 +341,151 @@
       ? `<span style="color:var(--green);">✅ You can submit today!</span>`
       : `<span style="color:var(--orange);">⚠️ ${check.reason}</span>`;
   });
-  window.sendMessage = function () {
+  // ── Send message to chatbot ──
+window.sendMessage = function () {
   const input = document.getElementById("userInput");
-  const chat = document.getElementById("chatBox");
-
+  const chatBox = document.getElementById("chatBox");
   const userText = input.value.trim();
-  const text = userText.toLowerCase();
-
+  
   if (!userText) return;
-
-  chat.innerHTML += `<p><strong>You:</strong> ${userText}</p>`;
-
-  let reply = "I didn't understand 🤔";
-
-  if (text.includes("status")) {
-    reply = "Check your dashboard above 👆 to see current laundry status.";
-  }
-  else if (text.includes("shelf") || text.includes("where")) {
-    reply = "Your laundry will be placed on a shelf 📦 once completed.";
-  }
-  else if (text.includes("time")) {
-    reply = "Laundry usually takes around 24 hours ⏳.";
-  }
-  else if (text.includes("lost")) {
-    reply = "Check the Lost & Found section 🔍.";
-  }
-  else if (text.includes("hi") || text.includes("hello")) {
-    reply = "Hey! 👋 How can I help you?";
+  
+  // Remove empty state if it exists
+  const emptyState = chatBox.querySelector('.chat-empty');
+  if (emptyState) {
+    emptyState.remove();
   }
   
-   else if (text.includes("status") || text.includes("progress") || text.includes("laundry")) {
-  reply = "Your laundry status is shown in your dashboard above 👆";
-}
-    else if (text.includes("where") || text.includes("location") || text.includes("shelf")) {
-  reply = "Once completed, your laundry will be placed on a shelf 📦. Check your dashboard.";
-}
-
-else if (text.includes("how long") || text.includes("time") || text.includes("duration")) {
-  reply = "Laundry usually takes around 6-7 hours, Based on the Rush⏳.";
-}
-    else {
-    reply = "Try asking about status, shelf, time, or lost items 😊";
-  }
-
-  chat.innerHTML += `<p><strong>Bot:</strong> ${reply}</p>`;
-
-  chat.scrollTop = chat.scrollHeight;
+  // Add user message
+  addMessageToChat(userText, 'user');
+  
+  // Get bot response
+  const response = getBotResponse(userText.toLowerCase());
+  
+  // Simulate typing delay for more natural feel
+  setTimeout(() => {
+    addMessageToChat(response, 'bot');
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }, 300);
+  
+  // Clear input
   input.value = "";
+  chatBox.scrollTop = chatBox.scrollHeight;
+};
+
+// ── Add message to chat UI ──
+function addMessageToChat(message, sender) {
+  const chatBox = document.getElementById("chatBox");
+  const messageDiv = document.createElement("div");
+  messageDiv.className = `chat-message ${sender}`;
+  messageDiv.style.animation = "slideIn 0.3s ease-out";
+  
+  const avatar = document.createElement("div");
+  avatar.className = `chat-avatar ${sender}`;
+  avatar.textContent = sender === 'user' ? '👤' : '🤖';
+  
+  const bubble = document.createElement("div");
+  bubble.className = `chat-bubble ${sender}`;
+  bubble.textContent = message;
+  
+  if (sender === 'user') {
+    messageDiv.appendChild(bubble);
+    messageDiv.appendChild(avatar);
+  } else {
+    messageDiv.appendChild(avatar);
+    messageDiv.appendChild(bubble);
+  }
+  
+  chatBox.appendChild(messageDiv);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// ── Get intelligent bot response ──
+function getBotResponse(text) {
+  // Check for status questions
+  if (text.includes("status") || text.includes("progress") || text.includes("where is my laundry")) {
+    // Get actual laundry status from the page
+    const totalEntries = document.getElementById('statTotal').textContent;
+    const processingCount = document.getElementById('statProcessing').textContent;
+    const completedCount = document.getElementById('statCompleted').textContent;
     
+    if (totalEntries === '—' || totalEntries === '0') {
+      return "📋 You haven't submitted any laundry yet. Use the form on the left to submit your laundry on your scheduled day!";
+    } else if (processingCount > '0') {
+      return `⚙️ You have ${processingCount} item(s) currently being processed. They'll be ready soon! Once completed, they'll be placed on a shelf.`;
+    } else if (completedCount > '0') {
+      return `✅ Great news! You have ${completedCount} completed laundry item(s). Check your dashboard above for the shelf number to collect from.`;
+    } else {
+      return `📋 You have ${totalEntries} laundry submission(s). Track their progress in the dashboard above.`;
+    }
+  }
+  
+  // Check for shelf/location questions
+  else if (text.includes("shelf") || text.includes("where") || text.includes("location") || text.includes("collect")) {
+    const completedEntries = document.querySelectorAll('.badge-completed').length;
+    const shelfNumbers = [];
+    document.querySelectorAll('.entry-completed-msg strong').forEach(el => {
+      shelfNumbers.push(el.textContent);
+    });
+    
+    if (shelfNumbers.length > 0) {
+      return `📦 Your completed laundry is on ${shelfNumbers.join(', ')}. Go to that shelf number to collect your items!`;
+    } else if (completedEntries > 0) {
+      return "📦 Your laundry is ready but hasn't been assigned a shelf yet. The worker will assign one soon. Check back in a few minutes!";
+    } else {
+      return "📦 Once your laundry is completed, it will be placed on a specific shelf. You'll see the shelf number in your dashboard when it's ready!";
+    }
+  }
+  
+  // Check for time/duration questions
+  else if (text.includes("time") || text.includes("how long") || text.includes("duration") || text.includes("when")) {
+    return "⏳ Laundry typically takes 6-7 hours depending on the rush. You'll get real-time updates in your dashboard above. We'll notify you when it's ready!";
+  }
+  
+  // Check for lost and found
+  else if (text.includes("lost") || text.includes("found") || text.includes("missing") || text.includes("item")) {
+    return "🔍 If you've lost something, check the Lost & Found page from the navigation bar above. You can report lost items or see if someone has found your belongings!";
+  }
+  
+  // Check for schedule questions
+  else if (text.includes("schedule") || text.includes("day") || text.includes("when can i submit")) {
+    const schedule = {
+      1: "Monday (Rooms 101-140)",
+      2: "Tuesday (Rooms 201-240)",
+      3: "Wednesday (Rooms 301-340)",
+      4: "Thursday (Rooms 401-440)",
+      5: "Friday (Rooms 501-540)",
+      6: "Saturday (Rooms 601-640)",
+      0: "Sunday (Rooms 701-740)"
+    };
+    const today = new Date().getDay();
+    return `📅 Today is ${schedule[today] || 'a day with no laundry'}. Check the Schedule page for the full weekly schedule!`;
+  }
+  
+  // Check for greeting
+  else if (text.includes("hi") || text.includes("hello") || text.includes("hey")) {
+    return "👋 Hello! I'm your Laundry Assistant. Ask me about your laundry status, shelf numbers, schedule, or anything else!";
+  }
+  
+  // Check for help
+  else if (text.includes("help") || text.includes("what can you do")) {
+    return "💡 I can help you with:\n• Checking your laundry status\n• Finding shelf numbers\n• Understanding the schedule\n• Lost & Found information\n• Time estimates\n\nJust ask naturally!";
+  }
+  
+  // Check for thanks
+  else if (text.includes("thank") || text.includes("thanks")) {
+    return "😊 You're welcome! Let me know if you need anything else!";
+  }
+  
+  // Default response
+  else {
+    return "🤔 I'm not sure about that. Try asking about:\n• 'What's my laundry status?'\n• 'Where will my laundry be?'\n• 'How long does it take?'\n• 'Lost and found'\n• 'Schedule'";
+  }
+}
+
+// ── Send suggested question ──
+window.sendSuggested = function(question) {
+  document.getElementById('userInput').value = question;
+  sendMessage();
 };
   
 </script>
